@@ -197,7 +197,6 @@ static int _aml_get_secure_boot_kernel_size(const void* pLoadaddr, unsigned* pTo
     return 0;
 }
 
-
 static int do_image_read_dtb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
     boot_img_hdr *hdr_addr = NULL;
@@ -362,13 +361,14 @@ static int do_image_read_kernel(cmd_tbl_t *cmdtp, int flag, int argc, char * con
 
     //Check if encrypted image
 #ifndef CONFIG_SKIP_KERNEL_DTB_SECBOOT_CHECK
-    rc = _aml_get_secure_boot_kernel_size(loadaddr, &secureKernelImgSz);
+	rc = _aml_get_secure_boot_kernel_size(loadaddr, &secureKernelImgSz);
     if (rc) {
             errorP("Fail in _aml_get_secure_boot_kernel_size, rc=%d\n", rc);
             return __LINE__;
     }
 #endif /*CONFIG_SKIP_KERNEL_DTB_SECBOOT_CHECK*/
-    if (secureKernelImgSz)
+
+	if (secureKernelImgSz)
     {
         actualBootImgSz = secureKernelImgSz + nCheckOffset;
         MsgP("secureKernelImgSz=0x%x\n", actualBootImgSz);

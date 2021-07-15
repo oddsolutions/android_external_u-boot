@@ -22,7 +22,7 @@
 #include <gpio.h>
 #include "pwm_ctrl.h"
 #ifdef CONFIG_CEC_WAKEUP
-#include <hdmi_cec_arc.h>
+#include <cec_tx_reg.h>
 #endif
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -102,7 +102,7 @@ void get_wakeup_source(void *response, unsigned int suspend_from)
 
 	p->status = RESPONSE_OK;
 	val = (POWER_KEY_WAKEUP_SRC | AUTO_WAKEUP_SRC | REMOTE_WAKEUP_SRC |
-	       BT_WAKEUP_SRC | ETH_PHY_GPIO_SRC | CECB_WAKEUP_SRC);
+	       BT_WAKEUP_SRC | ETH_PHY_GPIO_SRC | CECB_WAKEUP_SRC| WIFI_WAKEUP_SRC);
 
 	p->sources = val;
 
@@ -138,6 +138,17 @@ void get_wakeup_source(void *response, unsigned int suspend_from)
 	gpio->irq = IRQ_GPIO0_NUM;
 	gpio->trig_type = GPIO_IRQ_FALLING_EDGE;
 	p->gpio_info_count = ++i;
+
+	/*WIFI Wakeup: GPIOX_7 */
+	gpio = &(p->gpio_info[i]);
+	gpio->wakeup_id = WIFI_WAKEUP_SRC;
+	gpio->gpio_in_idx = GPIOX_7;
+	gpio->gpio_in_ao = 0;
+	gpio->gpio_out_idx = GPIOX_6;
+	gpio->gpio_out_ao = 0;
+	gpio->irq = IRQ_GPIO2_NUM;
+	gpio->trig_type = GPIO_IRQ_FALLING_EDGE;
+	p->gpio_info_count = ++i;
 }
 extern void __switch_idle_task(void);
 
@@ -147,20 +158,19 @@ static unsigned int detect_key(unsigned int suspend_from)
 	unsigned *irq = (unsigned *)WAKEUP_SRC_IRQ_ADDR_BASE;
 	init_remote();
 #ifdef CONFIG_CEC_WAKEUP
-	cec_start_config();
+		if (hdmi_cec_func_config & 0x1) {
+			remote_cec_hw_reset();
+			cec_node_init();
+		}
 #endif
 
 	do {
 		#ifdef CONFIG_CEC_WAKEUP
-		if (cec_suspend_wakeup_chk())
-			exit_reason = CEC_WAKEUP;
-		/*if (irq[IRQ_AO_CEC] == IRQ_AO_CEC1_NUM ||*/
-		 /*   irq[IRQ_AO_CECB] == IRQ_AO_CEC2_NUM) {*/
-		irq[IRQ_AO_CEC] = 0xFFFFFFFF;
-		irq[IRQ_AO_CECB] = 0xFFFFFFFF;
-		if (cec_suspend_handle())
-			exit_reason = CEC_WAKEUP;
-		/*}*/
+		if (irq[IRQ_AO_CECB] == IRQ_AO_CEC2_NUM) {
+			irq[IRQ_AO_CECB] = 0xFFFFFFFF;
+			if (cec_power_on_check())
+				exit_reason = CEC_WAKEUP;
+		}
 		#endif
 		if (irq[IRQ_AO_IR_DEC] == IRQ_AO_IR_DEC_NUM) {
 			irq[IRQ_AO_IR_DEC] = 0xFFFFFFFF;
@@ -192,6 +202,14 @@ static unsigned int detect_key(unsigned int suspend_from)
 					&& (readl(PREG_PAD_GPIO2_O) & (0x01 << 17))
 					&& !(readl(PREG_PAD_GPIO2_EN_N) & (0x01 << 17)))
 				exit_reason = BT_WAKEUP;
+		}
+
+		if (irq[IRQ_GPIO2] == IRQ_GPIO2_NUM) {
+			irq[IRQ_GPIO2] = 0xFFFFFFFF;
+			if (!(readl(PREG_PAD_GPIO2_I) & (0x01 << 7))
+					&& (readl(PREG_PAD_GPIO2_O) & (0x01 << 6))
+					&& !(readl(PREG_PAD_GPIO2_EN_N) & (0x01 << 6)))
+				exit_reason = WIFI_WAKEUP;
 		}
 
 		if (irq[IRQ_ETH_PTM] == IRQ_ETH_PMT_NUM) {

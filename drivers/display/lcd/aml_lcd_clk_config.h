@@ -24,10 +24,6 @@
 /* **********************************
  * clk config
  * ********************************** */
-#define LCD_PLL_MODE_DEFAULT         (1 << 0)
-#define LCD_PLL_MODE_SPECIAL_CNTL    (1 << 1)
-#define LCD_PLL_MODE_FRAC_SHIFT      (1 << 2)
-
 #define PLL_RETRY_MAX		20
 #define LCD_CLK_CTRL_EN      0
 #define LCD_CLK_CTRL_RST     1
@@ -51,7 +47,6 @@ struct lcd_clk_data_s {
 	unsigned int pll_n_max;
 	unsigned int pll_n_min;
 	unsigned int pll_frac_range;
-	unsigned int pll_frac_sign_bit;
 	unsigned int pll_od_sel_max;
 	unsigned int pll_ref_fmax;
 	unsigned int pll_ref_fmin;
@@ -100,7 +95,6 @@ struct lcd_clk_config_s { /* unit: kHz */
 	unsigned int pll_tcon_div_sel;
 	unsigned int pll_level;
 	unsigned int pll_frac;
-	unsigned int pll_frac_half_shift;
 	unsigned int pll_fout;
 	unsigned int ss_level;
 	unsigned int ss_freq;
@@ -126,7 +120,5 @@ extern void lcd_clk_disable(void);
 
 extern void lcd_clk_generate_parameter(struct lcd_config_s *pconf);
 extern void lcd_clk_config_probe(void);
-
-extern unsigned long clk_util_clk_msr(int index);
 
 #endif

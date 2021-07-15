@@ -33,17 +33,23 @@
  * platform power init config
  */
 #define CONFIG_PLATFORM_POWER_INIT
-#define CONFIG_VCCK_INIT_VOLTAGE	800		// VCCK power up voltage
-#define CONFIG_VDDEE_INIT_VOLTAGE	840		// VDDEE power up voltage
-#define CONFIG_VDDEE_SLEEP_VOLTAGE	770		// VDDEE suspend voltage
+#define CONFIG_VCCK_INIT_VOLTAGE    1010    // VCCK power up voltage
+#define CONFIG_VDDEE_INIT_VOLTAGE   840     // VDDEE power up voltage
+#define CONFIG_VDDEE_SLEEP_VOLTAGE  770     // VDDEE suspend voltage
+
+#define CONFIG_SYS_LED_INIT_VOLTAGE 0x00090013
+#define CONFIG_YELLOW_LED_VOLTAGE   0x00090013
+
+#define CONFIG_VENDOR_NAME      "Google"
+#define CONFIG_PRODUCT_NAME     "Chromecast"
 
 /* configs for CEC */
-#define CONFIG_CEC_OSD_NAME		"AML_TV"
+#define CONFIG_CEC_OSD_NAME     CONFIG_PRODUCT_NAME
 #define CONFIG_CEC_WAKEUP
 /*if use bt-wakeup,open it*/
 #define CONFIG_BT_WAKEUP
 /* SMP Definitinos */
-#define CPU_RELEASE_ADDR		secondary_boot_func
+#define CPU_RELEASE_ADDR        secondary_boot_func
 
 /* config saradc*/
 #define CONFIG_CMD_SARADC 1
@@ -56,11 +62,19 @@
 
 #define CONFIG_CMD_BOOTCTOL_AVB
 
+/* AVB configs */
+//#define CONFIG_AVB2 "avb2"      // this is defined in the Makefile
+#define CONFIG_AVB2_KPUB_VENDOR
+#define CONFIG_AVB2_KPUB_VENDOR_MULTIPLE
+
+/* support ext4*/
+#define CONFIG_CMD_EXT4 1
+
 /* Serial config */
-#define CONFIG_CONS_INDEX 2
-#define CONFIG_BAUDRATE  115200
+#define CONFIG_CONS_INDEX         2
+#define CONFIG_BAUDRATE           115200
 #define CONFIG_AML_MESON_SERIAL   1
-#define CONFIG_SERIAL_MULTI		1
+#define CONFIG_SERIAL_MULTI       1
 
 //Enable ir remote wake up for bl30
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL1 0xef10fe01 //amlogic tv ir --- power
@@ -79,7 +93,7 @@
 
 /* args/envs */
 #define CONFIG_SYS_MAXARGS  64
-#define CONFIG_EXTRA_ENV_SETTINGS \
+#define CONFIG_EXTRA_ENV_SETTINGS_BASE \
         "firstboot=1\0"\
         "upgrade_step=0\0"\
         "jtag=disable\0"\
@@ -97,6 +111,7 @@
         "display_color_fg=0xffff\0" \
         "display_color_bg=0\0" \
         "dtb_mem_addr=0x1000000\0" \
+        "vbmeta_mem_addr=0x3000000\0"\
         "fb_addr=0x3d800000\0" \
         "fb_width=1920\0" \
         "fb_height=1080\0" \
@@ -106,11 +121,7 @@
         "hdmichecksum=0x00000000\0" \
         "dolby_status=0\0" \
         "dolby_vision_on=0\0" \
-        "usb_burning=update 1000\0" \
         "fdt_high=0x20000000\0"\
-        "try_auto_burn=update 700 750;\0"\
-        "sdcburncfg=aml_sdc_burn.ini\0"\
-        "sdc_burning=sdc_burn ${sdcburncfg}\0"\
         "wipe_data=successful\0"\
         "wipe_cache=successful\0"\
         "EnableSelinux=enforcing\0" \
@@ -119,68 +130,172 @@
         "cvbs_drv=0\0"\
         "osd_reverse=0\0"\
         "video_reverse=0\0"\
-        "lock=10001000\0"\
         "active_slot=normal\0"\
         "boot_part=boot\0"\
         "reboot_mode_android=""normal""\0"\
         "Irq_check_en=0\0"\
         "fs_type=""rootfstype=ramfs""\0"\
+        "hdr_policy=0\0"\
         "initargs="\
-            "init=/init console=ttyS0,115200 no_console_suspend earlycon=aml-uart,0xff803000 ramoops.pstore_en=1 ramoops.record_size=0x8000 ramoops.console_size=0x4000 "\
-            "\0"\
-        "upgrade_check="\
-            "echo upgrade_step=${upgrade_step}; "\
-            "if itest ${upgrade_step} == 3; then "\
-                "run init_display; run storeargs; run update;"\
-            "else fi;"\
+            "init=/init" \
+            " console=ttyS0,115200" \
+            " no_console_suspend" \
+            " earlycon=aml-uart,0xff803000" \
+            " loglevel=3" \
+            " ramoops.pstore_en=1" \
+            " ramoops.record_size=0x8000" \
+            " ramoops.console_size=0x4000" \
             "\0"\
         "storeargs="\
             "get_bootloaderversion;" \
-            "setenv bootargs ${initargs} ${fs_type} reboot_mode_android=${reboot_mode_android} logo=${display_layer},loaded,${fb_addr} vout=${outputmode},enable panel_type=${panel_type} hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} irq_check_en=${Irq_check_en}  androidboot.selinux=${EnableSelinux} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
-	"setenv bootargs ${bootargs} androidboot.hardware=amlogic androidboot.bootloader=${bootloader_version} androidboot.build.expect.baseband=N/A;"\
+            "setenv bootargs" \
+                " ${initargs}" \
+                " hdr_policy=${hdr_policy}" \
+                " ${fs_type}" \
+                " reboot_mode_android=${reboot_mode_android}" \
+                " logo=${display_layer},loaded,${fb_addr}" \
+                " vout=${outputmode},enable" \
+                " panel_type=${panel_type}" \
+                " hdmitx=${cecconfig},${colorattribute}" \
+                " hdmimode=${hdmimode}" \
+                " hdmichecksum=${hdmichecksum}" \
+                " dolby_vision_on=${dolby_vision_on}" \
+                " frac_rate_policy=${frac_rate_policy}" \
+                " hdmi_read_edid=${hdmi_read_edid}" \
+                " cvbsmode=${cvbsmode}" \
+                " osd_reverse=${osd_reverse}" \
+                " video_reverse=${video_reverse}" \
+                " irq_check_en=${Irq_check_en}" \
+                " androidboot.selinux=${EnableSelinux}" \
+                " androidboot.firstboot=${firstboot}" \
+                " jtag=${jtag}; "\
+            "setenv bootargs" \
+                " ${bootargs}" \
+                " androidboot.hardware=amlogic" \
+                " androidboot.bootloader=${bootloader_version}" \
+                " androidboot.build.expect.baseband=N/A;"\
             "run cmdline_keys;"\
             "\0"\
-        "switch_bootmode="\
+        "init_display="\
             "get_rebootmode;"\
-            "if test ${reboot_mode} = factory_reset; then "\
-                    "setenv reboot_mode_android ""normal"";"\
-                    "run storeargs;"\
-                    "run recovery_from_flash;"\
-            "else if test ${reboot_mode} = update; then "\
-                    "setenv reboot_mode_android ""normal"";"\
-                    "run storeargs;"\
-                    "run update;"\
-            "else if test ${reboot_mode} = quiescent; then "\
+            "echo reboot_mode:::: ${reboot_mode};"\
+            "if test ${reboot_mode} = quiescent; then "\
                     "setenv reboot_mode_android ""quiescent"";"\
+                    "setenv dolby_status 0;"\
+                    "setenv dolby_vision_on 0;"\
                     "run storeargs;"\
                     "setenv bootargs ${bootargs} androidboot.quiescent=1;"\
-            "else if test ${reboot_mode} = recovery_quiescent; then "\
+                    "osd open;osd clear;"\
+            "elif test ${reboot_mode} = recovery_quiescent; then "\
                     "setenv reboot_mode_android ""quiescent"";"\
+                    "setenv dolby_status 0;"\
+                    "setenv dolby_vision_on 0;"\
                     "run storeargs;"\
                     "setenv bootargs ${bootargs} androidboot.quiescent=1;"\
-                    "run recovery_from_flash;"\
-            "else if test ${reboot_mode} = cold_boot; then "\
-                    "setenv reboot_mode_android ""normal"";"\
-                    "run storeargs;"\
-            "else if test ${reboot_mode} = fastboot; then "\
+                    "osd open;osd clear;"\
+            "else "\
                 "setenv reboot_mode_android ""normal"";"\
                 "run storeargs;"\
-                "fastboot;"\
-            "fi;fi;fi;fi;fi;fi;"\
-            "\0" \
+                "hdmitx hpd;"\
+                "hdmitx get_preferred_mode;"\
+                "hdmitx get_parse_edid;"\
+                "dovi process;"\
+                "osd open;"\
+                "osd clear;"\
+                "imgread pic logo bootup $loadaddr;"\
+                "bmp display $bootup_offset;"\
+                "bmp scale;"\
+                "vout output ${outputmode};"\
+                "dovi set;"\
+                "dovi pkg;"\
+                "vpp hdrpkt;"\
+            "fi;"\
+            "\0"\
+        "cmdline_keys_usid="\
+            "if keyman read usid ${loadaddr} str; then "\
+                "setenv bootargs ${bootargs} androidboot.serialno=${usid};"\
+                "setenv serial ${usid};"\
+            "else "\
+                "setenv bootargs ${bootargs} androidboot.serialno=1234567890;"\
+                "setenv serial 1234567890;"\
+            "fi;"\
+            "\0"\
+        "cmdline_keys_mac="\
+            "if keyman read mac ${loadaddr} str; then "\
+                "setenv bootargs ${bootargs} "\
+                    "mac=${mac} "\
+                    "androidboot.mac=${mac};"\
+            "fi;"\
+            "if keyman read mac_wifi ${loadaddr} str; then "\
+                "setenv bootargs ${bootargs} "\
+                    "mac_wifi=${mac_wifi} "\
+                    "androidboot.mac_wifi=${mac_wifi};"\
+            "else "\
+                "setenv bootargs ${bootargs} "\
+                    "mac_wifi=00:11:22:33:44:55 "\
+                    "androidboot.mac_wifi=00:11:22:33:44:55;"\
+            "fi;"\
+            "if keyman read mac_bt ${loadaddr} str; then "\
+                "setenv bootargs ${bootargs} "\
+                    "mac_bt=${mac_bt} "\
+                    "androidboot.mac_bt=${mac_bt};"\
+            "fi;"\
+            "\0"\
+        "cmdline_keys_deviceid="\
+            "if keyman read deviceid ${loadaddr} str; then "\
+                "setenv bootargs ${bootargs} androidboot.deviceid=${deviceid};"\
+            "fi;"\
+            "\0"\
+        "cmdline_keys_region_code="\
+            "if keyman read region_code ${loadaddr} str; then "\
+                "setenv bootargs ${bootargs} androidboot.wificountrycode=${region_code};"\
+            "else "\
+                "setenv bootargs ${bootargs} androidboot.wificountrycode=US;"\
+            "fi;"\
+            "\0"\
+        "cmdline_keys_oemkeys="\
+            "if keyman read nest_key0 ${loadaddr} str; then "\
+                "setenv bootargs ${bootargs} androidboot.oem.locales=${nest_key0};"\
+            "fi;"\
+            "if keyman read nest_key1 ${loadaddr} str; then "\
+                "setenv bootargs ${bootargs} "\
+                    "androidboot.hardware.sku=${nest_key1} "\
+                    "androidboot.product.hardware.sku=${nest_key1};"\
+            "fi;"\
+            "if keyman read oemkey ${loadaddr} str; then "\
+                "setenv bootargs ${bootargs} androidboot.oem.key1=${oemkey};"\
+            "elif keyman read nest_key1 ${loadaddr} str; then "\
+                "setenv bootargs ${bootargs} androidboot.oem.key1=ATV00100020-${nest_key1};"\
+            "else "\
+                "setenv bootargs ${bootargs} androidboot.oem.key1=ATV00100020;"\
+            "fi;"\
+            "\0"\
+        "cmdline_keys="\
+            "if keyman init 0x1234; then "\
+                "run cmdline_keys_usid;"\
+                "run cmdline_keys_mac;"\
+                "run cmdline_keys_deviceid;"\
+                "run cmdline_keys_region_code;"\
+                "run cmdline_keys_oemkeys;"\
+            "fi;"\
+            "\0"\
+        "bcb_cmd="\
+            "get_avb_mode;"\
+            "get_valid_slot;"\
+            "\0"\
         "storeboot="\
             "boot_cooling;"\
             "get_system_as_root_mode;"\
             "echo system_mode: ${system_mode};"\
             "if test ${system_mode} = 1; then "\
-                    "setenv fs_type ""ro rootwait skip_initramfs"";"\
-                    "run storeargs;"\
+                "setenv fs_type ""ro rootwait skip_initramfs"";"\
+                "run storeargs;"\
             "fi;"\
             "get_valid_slot;"\
             "get_avb_mode;"\
             "echo active_slot: ${active_slot};"\
             "if test ${active_slot} != normal; then "\
-                    "setenv bootargs ${bootargs} androidboot.slot_suffix=${active_slot};"\
+                "setenv bootargs ${bootargs} androidboot.slot_suffix=${active_slot};"\
             "fi;"\
             "if test ${avb2} = 0; then "\
                 "if test ${active_slot} = _a; then "\
@@ -189,152 +304,175 @@
                     "setenv bootargs ${bootargs} root=/dev/mmcblk0p24;"\
                 "fi;fi;"\
             "fi;"\
-            "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
-            "run update;"\
-            "\0"\
-        "factory_reset_poweroff_protect="\
-            "echo wipe_data=${wipe_data}; echo wipe_cache=${wipe_cache};"\
-            "if test ${wipe_data} = failed; then "\
-                "run init_display; run storeargs;"\
-                "if mmcinfo; then "\
-                    "run recovery_from_sdcard;"\
-                "fi;"\
-                "if usb start 0; then "\
-                    "run recovery_from_udisk;"\
-                "fi;"\
-                "run recovery_from_flash;"\
-            "fi; "\
-            "if test ${wipe_cache} = failed; then "\
-                "run init_display; run storeargs;"\
-                "if mmcinfo; then "\
-                    "run recovery_from_sdcard;"\
-                "fi;"\
-                "if usb start 0; then "\
-                    "run recovery_from_udisk;"\
-                "fi;"\
-                "run recovery_from_flash;"\
-            "fi; \0" \
-         "update="\
-            /*first usb burning, second sdc_burn, third ext-sd autoscr/recovery, last udisk autoscr/recovery*/\
-            "run usb_burning; "\
-            "run sdc_burning; "\
-            "if mmcinfo; then "\
-                "run recovery_from_sdcard;"\
+            "if imgread kernel ${boot_part} ${loadaddr}; then "\
+                "bootm ${loadaddr};"\
             "fi;"\
-            "if usb start 0; then "\
-                "run recovery_from_udisk;"\
+            "run fallback;"\
+            "\0"\
+        "upgrade_check=" \
+            "echo upgrade_step=${upgrade_step}; "\
+            "if itest ${upgrade_step} == 3; then "\
+                "run init_display;" \
+                "run storeargs;" \
+                "run fallback;" \
             "fi;"\
-            "run recovery_from_flash;"\
-            "\0"\
-        "recovery_from_sdcard="\
-            "if fatload mmc 0 ${loadaddr} aml_autoscript; then autoscr ${loadaddr}; fi;"\
-            "if fatload mmc 0 ${loadaddr} recovery.img; then "\
-                    "if fatload mmc 0 ${dtb_mem_addr} dtb.img; then echo sd dtb.img loaded; fi;"\
-                    "wipeisb; "\
-                    "bootm ${loadaddr};fi;"\
-            "\0"\
-        "recovery_from_udisk="\
-            "if fatload usb 0 ${loadaddr} aml_autoscript; then autoscr ${loadaddr}; fi;"\
-            "if fatload usb 0 ${loadaddr} recovery.img; then "\
-                "if fatload usb 0 ${dtb_mem_addr} dtb.img; then echo udisk dtb.img loaded; fi;"\
-                "wipeisb; "\
-                "bootm ${loadaddr};fi;"\
+            "\0" \
+        "recovery_from_cache="\
+            "if ext4load mmc 1:2 ${loadaddr} /recovery/recovery.img; then "\
+                "if ext4load mmc 1:2 ${dtb_mem_addr} /recovery/dtb.img; then "\
+                    "echo cache dtb.img loaded;"\
+                "fi;"\
+                "echo cache recovery.img loaded;" \
+                "setenv loadpart recovery;"\
+                "bootm ${loadaddr};"\
+            "fi;"\
             "\0"\
         "recovery_from_flash="\
             "get_valid_slot;"\
             "echo active_slot: ${active_slot};"\
             "if test ${active_slot} = normal; then "\
-                "setenv bootargs ${bootargs} aml_dt=${aml_dt} recovery_part={recovery_part} recovery_offset={recovery_offset};"\
-                "if imgread kernel ${recovery_part} ${loadaddr} ${recovery_offset}; then wipeisb; bootm ${loadaddr}; fi;"\
+                "run recovery_from_cache;" \
+                "setenv bootargs" \
+                    " ${bootargs}" \
+                    " aml_dt=${aml_dt}" \
+                    " recovery_part=${recovery_part}" \
+                    " recovery_offset=${recovery_offset};"\
+                "if imgread kernel ${recovery_part} ${loadaddr} ${recovery_offset}; then "\
+                    "bootm ${loadaddr};"\
+                "fi;"\
             "else "\
-                "setenv bootargs ${bootargs} aml_dt=${aml_dt} recovery_part=${boot_part} recovery_offset=${recovery_offset};"\
-                "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
+                "setenv bootargs ${bootargs}" \
+                    " aml_dt=${aml_dt}" \
+                    " recovery_part=${boot_part}" \
+                    " recovery_offset=${recovery_offset};" \
+                "if imgread kernel ${boot_part} ${loadaddr}; then " \
+                    "bootm ${loadaddr};" \
+                "fi;" \
             "fi;"\
             "\0"\
-        "init_display="\
+        "switch_bootmode="\
             "get_rebootmode;"\
-            "echo reboot_mode:::: ${reboot_mode};"\
-            "if test ${reboot_mode} = quiescent; then "\
-                    "setenv reboot_mode_android ""quiescent"";"\
-                    "run storeargs;"\
-                    "setenv bootargs ${bootargs} androidboot.quiescent=1;"\
-                    "osd open;osd clear;"\
-            "else if test ${reboot_mode} = recovery_quiescent; then "\
-                    "setenv reboot_mode_android ""quiescent"";"\
-                    "run storeargs;"\
-                    "setenv bootargs ${bootargs} androidboot.quiescent=1;"\
-                    "osd open;osd clear;"\
-            "else "\
+            "if test ${reboot_mode} = factory_reset; then "\
                 "setenv reboot_mode_android ""normal"";"\
                 "run storeargs;"\
-                "hdmitx hpd;hdmitx get_preferred_mode;hdmitx get_parse_edid;dovi process;osd open;osd clear;imgread pic logo bootup $loadaddr;bmp display $bootup_offset;bmp scale;vout output ${outputmode};dovi set;dovi pkg;vpp hdrpkt;"\
-            "fi;fi;"\
-            "\0"\
-        "cmdline_keys="\
-            "if keyman init 0x1234; then "\
-                "if keyman read usid ${loadaddr} str; then "\
-                    "setenv bootargs ${bootargs} androidboot.serialno=${usid};"\
-                    "setenv serial ${usid};"\
-                "else "\
-                    "setenv bootargs ${bootargs} androidboot.serialno=1234567890;"\
-                    "setenv serial 1234567890;"\
-                "fi;"\
-                "if keyman read mac ${loadaddr} str; then "\
-                    "setenv bootargs ${bootargs} mac=${mac} androidboot.mac=${mac};"\
-                "fi;"\
-                "if keyman read mac_wifi ${loadaddr} str; then "\
-                    "setenv bootargs ${bootargs} mac_wifi=${mac_wifi} androidboot.mac_wifi=${mac_wifi};"\
-                "else "\
-                    "setenv bootargs ${bootargs} mac_wifi=00:11:22:33:44:55 androidboot.mac_wifi=00:11:22:33:44:55;"\
-                "fi;"\
-                "if keyman read mac_bt ${loadaddr} str; then "\
-                    "setenv bootargs ${bootargs} mac_bt=${mac_bt} androidboot.mac_bt=${mac_bt};"\
-                "fi;"\
-                "if keyman read deviceid ${loadaddr} str; then "\
-                    "setenv bootargs ${bootargs} androidboot.deviceid=${deviceid};"\
-                "fi;"\
-                "if keyman read region_code ${loadaddr} str; then "\
-                    "setenv bootargs ${bootargs} androidboot.wificountrycode=${region_code};"\
-                "else "\
-                    "setenv bootargs ${bootargs} androidboot.wificountrycode=US;"\
-                "fi;"\
+                "run recovery_from_flash;"\
+            "elif test ${reboot_mode} = update; then "\
+                "setenv reboot_mode_android ""normal"";"\
+                "run storeargs;"\
+                "run update;"\
+            "elif test ${reboot_mode} = quiescent; then "\
+                "setenv reboot_mode_android ""quiescent"";"\
+                "run storeargs;"\
+                "setenv bootargs ${bootargs} androidboot.quiescent=1;"\
+            "elif test ${reboot_mode} = recovery_quiescent; then "\
+                "setenv reboot_mode_android ""quiescent"";"\
+                "run storeargs;"\
+                "setenv bootargs ${bootargs} androidboot.quiescent=1;"\
+                "run recovery_from_flash;"\
+            "elif test ${reboot_mode} = cold_boot; then "\
+                "setenv reboot_mode_android ""normal"";"\
+                "run storeargs;"\
+            "elif test ${reboot_mode} = fastboot; then "\
+                "setenv reboot_mode_android ""normal"";"\
+                "run storeargs;"\
+                "fastboot;"\
             "fi;"\
             "\0"\
-        "bcb_cmd="\
-            "get_avb_mode;"\
-            "get_valid_slot;"\
-            "\0"\
-        "upgrade_key="\
-            "if gpio input GPIOAO_3; then "\
-                "echo detect upgrade key; run update;"\
-            "fi;"\
-            "\0"\
-	"irremote_update="\
-		"if irkey 2500000 0xe31cfb04 0xb748fb04; then "\
-			"echo read irkey ok!; " \
-		"if itest ${irkey_value} == 0xe31cfb04; then " \
-			"run update;" \
-		"else if itest ${irkey_value} == 0xb748fb04; then " \
-			"run update;\n" \
-			"fi;fi;" \
-		"fi;\0" \
+        "recovery_from_udisk=" \
+            "if fatload usb 0 ${loadaddr} recovery.img && " \
+                    "fatload usb 0 ${vbmeta_mem_addr} vbmeta.img; then " \
+                "echo udisk recovery.img loaded;" \
+                "echo udisk vbmeta.img loaded;" \
+                "if fatload usb 0 ${dtb_mem_addr} dtb.img; then " \
+                    "echo udisk dtb.img loaded;" \
+                "fi;" \
+                "setenv bootargs ${bootargs} androidboot.install_ota_from_usb=true; "\
+                "setenv loadpart recovery;"\
+                "setenv upgrade_step 0;" /* never skip avb */ \
+                "setenv use_mem_vbmeta 1;"\
+                "setenv use_external_avb_key 1;"\
+                "bootm ${loadaddr};" \
+            "fi;" \
+            "\0" \
+        "upgrade_key=" \
+            "if gpio input GPIOAO_10; then " \
+                "echo GPIOAO_10 pressed;" \
+                "if usb start 0; then " \
+                    "run recovery_from_udisk;" \
+                "fi;" \
+            "fi;" \
+            "\0"
 
+#define CONFIG_EXTRA_ENV_SETTINGS_RELEASE \
+        CONFIG_EXTRA_ENV_SETTINGS_BASE \
+        "lock=10001110\0" \
+        "fallback=" \
+            "run recovery_from_flash;" \
+            "\0"
+
+#define CONFIG_EXTRA_ENV_SETTINGS_DEV \
+        CONFIG_EXTRA_ENV_SETTINGS_BASE \
+        "lock=10101110\0" /* default to unlockable */ \
+        "fallback=run update\0" \
+        "usb_burning=update 1000\0" \
+        "try_auto_burn=update 700 750;\0" \
+        "sdcburncfg=aml_sdc_burn.ini\0" \
+        "sdc_burning=sdc_burn ${sdcburncfg}\0" \
+        "update=" \
+            /* first sdc_burn, second ext-sd autoscr/recovery, */ \
+            /* last udisk autoscr/recovery */ \
+            "run sdc_burning; " \
+            "if mmcinfo; then " \
+                "run recovery_from_sdcard;" \
+            "fi;" \
+            "if usb start 0; then " \
+                "run recovery_from_udisk;" \
+            "fi;" \
+            "run recovery_from_flash;" \
+            "\0" \
+        "recovery_from_sdcard=" \
+            "if fatload mmc 0 ${loadaddr} aml_autoscript; then " \
+                "autoscr ${loadaddr};" \
+            "fi;" \
+            "if fatload mmc 0 ${loadaddr} recovery.img; then " \
+                "if fatload mmc 0 ${dtb_mem_addr} dtb.img; then " \
+                    "echo sd dtb.img loaded;" \
+                "fi;" \
+                "setenv loadpart recovery;"\
+                "bootm ${loadaddr};" \
+            "fi;" \
+            "\0"
+
+#ifdef AML_DISABLE_UPDATE_MODE
+#define CONFIG_EXTRA_ENV_SETTINGS CONFIG_EXTRA_ENV_SETTINGS_RELEASE
+#define CONFIG_BOOTDELAY 0
+#else
+#define CONFIG_EXTRA_ENV_SETTINGS CONFIG_EXTRA_ENV_SETTINGS_DEV
+#define CONFIG_BOOTDELAY 1
+//UBOOT Facotry usb/sdcard burning config
+#define CONFIG_AML_V2_FACTORY_BURN              1       //support facotry usb burning
+#define CONFIG_AML_FACTORY_BURN_LOCAL_UPGRADE   1       //support factory sdcard burning
+#define CONFIG_POWER_KEY_NOT_SUPPORTED_FOR_BURN 1       //There isn't power-key for factory sdcard burning
+#define CONFIG_SD_BURNING_SUPPORT_UI            1       //Displaying upgrading progress bar when sdcard/udisk burning
+#endif  // AML_DISABLE_UPDATE_MODE
 
 #define CONFIG_PREBOOT  \
-            "run bcb_cmd; "\
-            "run factory_reset_poweroff_protect;"\
-            "run upgrade_check;"\
-            "run init_display;"\
-            "run storeargs;"\
-            "run upgrade_key;" \
-            "forceupdate;" \
-            "bcb uboot-command;"\
-            "run switch_bootmode;"
+        "run bcb_cmd; " \
+        "run init_display;" \
+        "run storeargs;"
 
-#define CONFIG_BOOTCOMMAND "run storeboot"
+#define CONFIG_BOOTCOMMAND \
+        "run upgrade_key;" \
+        "bcb uboot-command;" \
+        "run switch_bootmode;" \
+        "ddr_auto_fast_boot_check 6;run storeboot"
 
 //#define CONFIG_ENV_IS_NOWHERE  1
 #define CONFIG_ENV_SIZE   (64*1024)
+#define CONFIG_ENV_OFFSET_REDUND (CONFIG_ENV_SIZE)
+#define CONFIG_SYS_REDUNDAND_ENVIRONMENT
+#define CONFIG_ENV_BACKUP
+
 #define CONFIG_FIT 1
 #define CONFIG_OF_LIBFDT 1
 #define CONFIG_ANDROID_BOOT_IMAGE 1
@@ -342,7 +480,7 @@
 #define CONFIG_SYS_BOOTM_LEN (64<<20) /* Increase max gunzip size*/
 
 /* cpu */
-#define CONFIG_CPU_CLK					1200 //MHz. Range: 360-2000, should be multiple of 24
+#define CONFIG_CPU_CLK					1800 //MHz. Range: 360-2000, should be multiple of 24
 
 /* ATTENTION */
 /* DDR configs move to board/amlogic/[board]/firmware/timing.c */
@@ -350,8 +488,8 @@
 #define CONFIG_NR_DRAM_BANKS			1
 /* ddr functions */
 #define CONFIG_DDR_FULL_TEST			0 //0:disable, 1:enable. ddr full test
-#define CONFIG_CMD_DDR_D2PLL			0 //0:disable, 1:enable. d2pll cmd
-#define CONFIG_CMD_DDR_TEST				0 //0:disable, 1:enable. ddrtest cmd
+#define CONFIG_CMD_DDR_D2PLL			1 //0:disable, 1:enable. d2pll cmd
+#define CONFIG_CMD_DDR_TEST				1 //0:disable, 1:enable. ddrtest cmd
 #define CONFIG_DDR_LOW_POWER			0 //0:disable, 1:enable. ddr clk gate for lp
 #define CONFIG_DDR_ZQ_PD				0 //0:disable, 1:enable. ddr zq power down
 #define CONFIG_DDR_USE_EXT_VREF			0 //0:disable, 1:enable. ddr use external vref
@@ -380,7 +518,7 @@
 /* axg only support slc nand */
 /* swither for mtd nand which is for slc only. */
 /* support for mtd */
-#define CONFIG_AML_MTD 1
+//#define CONFIG_AML_MTD 1
 /* support for nftl */
 //#define CONFIG_AML_NAND	1
 
@@ -551,12 +689,6 @@
 #define CONFIG_FASTBOOT_MAX_DOWN_SIZE	0x8000000
 #define CONFIG_DEVICE_PRODUCT	"sabrina"
 
-//UBOOT Facotry usb/sdcard burning config
-#define CONFIG_AML_V2_FACTORY_BURN              1       //support facotry usb burning
-#define CONFIG_AML_FACTORY_BURN_LOCAL_UPGRADE   1       //support factory sdcard burning
-#define CONFIG_POWER_KEY_NOT_SUPPORTED_FOR_BURN 1       //There isn't power-key for factory sdcard burning
-#define CONFIG_SD_BURNING_SUPPORT_UI            1       //Displaying upgrading progress bar when sdcard/udisk burning
-
 #define CONFIG_AML_SECURITY_KEY                 1
 #define CONFIG_UNIFY_KEY_MANAGE                 1
 
@@ -626,7 +758,6 @@
 #define CONFIG_NEED_BL32	1
 #define CONFIG_CMD_RSVMEM	1
 #define CONFIG_FIP_IMG_SUPPORT	1
-#define CONFIG_BOOTDELAY	1 //delay 1s
 #define CONFIG_SYS_LONGHELP 1
 #define CONFIG_CMD_MISC     1
 #define CONFIG_CMD_ITEST    1

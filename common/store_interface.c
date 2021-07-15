@@ -74,6 +74,7 @@ extern unsigned emmc_cur_partition;
 extern int mmc_ddr_parameter_read(unsigned char *buf, unsigned int size);
 extern int mmc_ddr_parameter_write(unsigned char *buf, unsigned int size);
 extern int mmc_ddr_parameter_erase(void);
+extern int is_dtb_encrypt(unsigned char *buffer);
 
 #define debugP(fmt...) //printf("Dbg[store]L%d:", __LINE__),printf(fmt)
 #define MsgP(fmt...)   printf("[store]"fmt)
@@ -387,25 +388,27 @@ static int do_store_dtb_ops(cmd_tbl_t * cmdtp, int flag, int argc, char * const 
 		ret = run_command(_cmdBuf, 0);
 
 		unsigned long dtImgAddr = simple_strtoul(dtbLoadaddr, NULL, 16);
-		//
-		//ONLY need decrypting when 'store dtb read'
-	   if (!strcmp("read", argv[2]))
-	   {
-		   flush_cache(dtImgAddr, AML_DTB_IMG_MAX_SZ);
+		if (is_dtb_encrypt(NULL)) {
+			//
+			//ONLY need decrypting when 'store dtb read'
+			if (!strcmp("read", argv[2]))
+			{
+				flush_cache(dtImgAddr, AML_DTB_IMG_MAX_SZ);
 #ifndef CONFIG_SKIP_KERNEL_DTB_SECBOOT_CHECK
-
-		   ret = aml_sec_boot_check(AML_D_P_IMG_DECRYPT, dtImgAddr, AML_DTB_IMG_MAX_SZ, 0);
-		   if (ret) {
-			   MsgP("decrypt dtb: Sig Check %d\n",ret);
-			   return ret;
-		   }
+				ret = aml_sec_boot_check(AML_D_P_IMG_DECRYPT, dtImgAddr, AML_DTB_IMG_MAX_SZ, 0);
+				if (ret) {
+					MsgP("decrypt dtb: Sig Check %d\n",ret);
+					return ret;
+				}
 #endif
-	   }
-
-	   if (!is_write && strcmp("iread", argv[2]))
-	   {
-			ulong nCheckOffset;
+			}
+		}
+		if (!is_write && strcmp("iread", argv[2]))
+		{
+			ulong nCheckOffset = 0;
+#ifndef CONFIG_SKIP_KERNEL_DTB_SECBOOT_CHECK
 			nCheckOffset = aml_sec_boot_check(AML_D_Q_IMG_SIG_HDR_SIZE,GXB_IMG_LOAD_ADDR,GXB_EFUSE_PATTERN_SIZE,GXB_IMG_DEC_ALL);
+#endif
 			if (AML_D_Q_IMG_SIG_HDR_SIZE == (nCheckOffset & 0xFFFF))
 				nCheckOffset = (nCheckOffset >> 16) & 0xFFFF;
 			else
@@ -1134,8 +1137,7 @@ E_SWITCH_BACK:
 		else if(device_boot_flag==EMMC_BOOT_FLAG){
 			store_dbg("MMC BOOT,erase data : %s %d  off =%llx ,size=%llx",__func__,__LINE__, off, size);
 			off = size =0;
-			MsgP("amlmmc erase non_loader\n");
-			ret = run_command("amlmmc erase non_loader",0); //whole
+			ret = run_command("amlmmc erase 1",0); //whole
 			if (ret != 0) {
 				store_msg("amlmmc cmd %s failed ",cmd);
 				return -1;

@@ -55,9 +55,6 @@
 
 #define CONFIG_CMD_BOOTCTOL_AVB
 
-/* support ext4*/
-#define CONFIG_CMD_EXT4 1
-
 /* Serial config */
 #define CONFIG_CONS_INDEX 2
 #define CONFIG_BAUDRATE  115200
@@ -87,7 +84,6 @@
         "jtag=disable\0"\
         "loadaddr=1080000\0"\
         "panel_type=lcd_1\0" \
-		"lcd_ctrl=0x00000000\0" \
         "outputmode=1080p60hz\0" \
         "hdmimode=1080p60hz\0" \
 	"colorattribute=444,8bit\0"\
@@ -104,13 +100,11 @@
         "fb_width=1920\0" \
         "fb_height=1080\0" \
         "frac_rate_policy=1\0" \
-        "sdr2hdr=2\0" \
         "hdmi_read_edid=1\0" \
         "hdmichecksum=0x00000000\0" \
         "dolby_status=0\0" \
         "dolby_vision_on=0\0" \
         "usb_burning=update 1000\0" \
-        "otg_device=1\0"\
         "fdt_high=0x20000000\0"\
         "try_auto_burn=update 700 750;\0"\
         "sdcburncfg=aml_sdc_burn.ini\0"\
@@ -119,7 +113,7 @@
         "wipe_cache=successful\0"\
         "EnableSelinux=enforcing\0" \
         "recovery_part=recovery\0"\
-        "lock=10101000\0"\
+        "lock=10001000\0"\
         "recovery_offset=0\0"\
         "cvbs_drv=0\0"\
         "osd_reverse=0\0"\
@@ -127,9 +121,7 @@
         "active_slot=normal\0"\
         "boot_part=boot\0"\
         "reboot_mode_android=""normal""\0"\
-        "Irq_check_en=0\0"\
         "fs_type=""rootfstype=ramfs""\0"\
-        "aml_dt=g12a_s905y2_deadpool\0"\
         "initargs="\
             "init=/init console=ttyS0,115200 no_console_suspend earlyprintk=aml-uart,0xff803000 ramoops.pstore_en=1 ramoops.record_size=0x8000 ramoops.console_size=0x4000 "\
             "\0"\
@@ -140,8 +132,8 @@
             "else fi;"\
             "\0"\
         "storeargs="\
-		"get_bootloaderversion;" \
-		"setenv bootargs ${initargs}  hdr_priority=${hdr_priority} otg_device=${otg_device} reboot_mode_android=${reboot_mode_android} logo=${display_layer},loaded,${fb_addr} fb_width=${fb_width} fb_height=${fb_height} display_bpp=${display_bpp} outputmode=${outputmode} vout=${outputmode},enable panel_type=${panel_type} lcd_ctrl=${lcd_ctrl} hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} irq_check_en=${Irq_check_en}  androidboot.selinux=${EnableSelinux} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
+            "get_bootloaderversion;" \
+            "setenv bootargs ${initargs} ${fs_type} reboot_mode_android=${reboot_mode_android} logo=${display_layer},loaded,${fb_addr} vout=${outputmode},enable panel_type=${panel_type} hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} frac_rate_policy=${frac_rate_policy}  hdmi_read_edid=${hdmi_read_edid} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} androidboot.selinux=${EnableSelinux} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
 	"setenv bootargs ${bootargs} androidboot.hardware=amlogic androidboot.bootloader=${bootloader_version} androidboot.build.expect.baseband=N/A;"\
             "run cmdline_keys;"\
             "\0"\
@@ -178,9 +170,8 @@
             "get_system_as_root_mode;"\
             "echo system_mode: ${system_mode};"\
             "if test ${system_mode} = 1; then "\
-                    "setenv bootargs ${bootargs} ro rootwait skip_initramfs;"\
-            "else "\
-                    "setenv bootargs ${bootargs} ${fs_type};"\
+                    "setenv fs_type ""ro rootwait skip_initramfs"";"\
+                    "run storeargs;"\
             "fi;"\
             "get_valid_slot;"\
             "get_avb_mode;"\
@@ -196,7 +187,7 @@
                 "fi;fi;"\
             "fi;"\
             "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
-            "run storeargs; run update;"\
+            "run update;"\
             "\0"\
         "factory_reset_poweroff_protect="\
             "echo wipe_data=${wipe_data}; echo wipe_cache=${wipe_cache};"\
@@ -237,7 +228,6 @@
             "if fatload mmc 0 ${loadaddr} recovery.img; then "\
                     "if fatload mmc 0 ${dtb_mem_addr} dtb.img; then echo sd dtb.img loaded; fi;"\
                     "wipeisb; "\
-                    "setenv bootargs ${bootargs} ${fs_type};"\
                     "bootm ${loadaddr};fi;"\
             "\0"\
         "recovery_from_udisk="\
@@ -245,27 +235,17 @@
             "if fatload usb 0 ${loadaddr} recovery.img; then "\
                 "if fatload usb 0 ${dtb_mem_addr} dtb.img; then echo udisk dtb.img loaded; fi;"\
                 "wipeisb; "\
-                "setenv bootargs ${bootargs} ${fs_type};"\
                 "bootm ${loadaddr};fi;"\
             "\0"\
         "recovery_from_flash="\
             "get_valid_slot;"\
             "echo active_slot: ${active_slot};"\
             "if test ${active_slot} = normal; then "\
-                "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${recovery_part} recovery_offset=${recovery_offset};"\
-                "if itest ${upgrade_step} == 3; then "\
-                    "if ext4load mmc 1:2 ${dtb_mem_addr} /recovery/dtb.img; then echo cache dtb.img loaded; fi;"\
-                    "if ext4load mmc 1:2 ${loadaddr} /recovery/recovery.img; then echo cache recovery.img loaded; wipeisb; bootm ${loadaddr}; fi;"\
-                "else fi;"\
+                "setenv bootargs ${bootargs} aml_dt=${aml_dt} recovery_part={recovery_part} recovery_offset={recovery_offset};"\
                 "if imgread kernel ${recovery_part} ${loadaddr} ${recovery_offset}; then wipeisb; bootm ${loadaddr}; fi;"\
             "else "\
-                "if test ${partiton_mode} = normal; then "\
-                    "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${boot_part} recovery_offset=${recovery_offset};"\
-                    "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
-                "else "\
-                    "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${recovery_part} recovery_offset=${recovery_offset};"\
-                    "if imgread kernel ${recovery_part} ${loadaddr} ${recovery_offset}; then wipeisb; bootm ${loadaddr}; fi;"\
-                "fi;"\
+                "setenv bootargs ${bootargs} aml_dt=${aml_dt} recovery_part=${boot_part} recovery_offset=${recovery_offset};"\
+                "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
             "fi;"\
             "\0"\
         "init_display="\
@@ -284,7 +264,7 @@
             "else "\
                 "setenv reboot_mode_android ""normal"";"\
                 "run storeargs;"\
-                "hdmitx hpd;hdmitx get_preferred_mode;hdmitx get_parse_edid;setenv dolby_status 0;setenv dolby_vision_on 0;osd open;osd clear;imgread pic logo bootup $loadaddr;bmp display $bootup_offset;bmp scale;vout output ${outputmode};vpp hdrpkt;"\
+                "hdmitx hpd;hdmitx get_preferred_mode;hdmitx get_parse_edid;dovi process;osd open;osd clear;imgread pic logo bootup $loadaddr;bmp display $bootup_offset;bmp scale;vout output ${outputmode};dovi set;dovi pkg;"\
             "fi;fi;"\
             "\0"\
         "cmdline_keys="\
@@ -304,8 +284,6 @@
                 "fi;"\
                 "if keyman read oemkey ${loadaddr} str; then "\
                     "setenv bootargs ${bootargs} androidboot.oem.key1=${oemkey};"\
-                "else "\
-                    "setenv bootargs ${bootargs} androidboot.oem.key1=ATV00104319;"\
                 "fi;"\
             "fi;"\
             "\0"\
@@ -506,6 +484,10 @@
 /* DISPLAY & HDMITX */
 #define CONFIG_AML_HDMITX20 1
 
+#if defined(CONFIG_AML_HDMITX20)
+#define CONFIG_AML_DOLBY 1
+#endif
+
 #define CONFIG_AML_CANVAS 1
 #define CONFIG_AML_VOUT 1
 #define CONFIG_AML_OSD 1
@@ -601,10 +583,6 @@
 #define CONFIG_SYS_I2C_SPEED		400000
 #endif
 
-/* PWM DM driver*/
-#define CONFIG_DM_PWM
-#define CONFIG_PWM_MESON
-
 #define CONFIG_EFUSE 1
 
 /* commands */
@@ -648,7 +626,7 @@
 #define CONFIG_SYS_MEM_TOP_HIDE 0x08000000 //hide 128MB for kernel reserve
 #define CONFIG_CMD_LOADB    1
 
-#define CONFIG_MULTI_DTB    1
+//#define CONFIG_MULTI_DTB    1
 
 /* debug mode defines */
 //#define CONFIG_DEBUG_MODE           1

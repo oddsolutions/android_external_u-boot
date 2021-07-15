@@ -796,63 +796,31 @@ phys_size_t get_effective_memsize(void)
 int checkhw(char * name)
 {
 	/*
-	 * set aml_dt according to chip and dram capacity
+	 * read board hw id
+	 * set and select the dts according the board hw id.
+	 *
+	 * hwid = 1	p321 v1
+	 * hwid = 2	p321 v2
 	 */
-	unsigned int ddr_size=0;
+	unsigned int hwid = 1;
 	char loc_name[64] = {0};
-	int i;
-	cpu_id_t cpu_id=get_cpu_id();
 
-	for (i=0; i<CONFIG_NR_DRAM_BANKS; i++) {
-		ddr_size += gd->bd->bi_dram[i].size;
-	}
+	/* read hwid */
+	hwid = (readl(P_AO_SEC_GP_CFG0) >> 8) & 0xFF;
 
-#if defined(CONFIG_SYS_MEM_TOP_HIDE)
-	ddr_size += CONFIG_SYS_MEM_TOP_HIDE;
-#endif
-	printf("ddr_size = 0x%x \n", ddr_size);
-	char *ddr_mode = getenv("mem_size");
-	if (MESON_CPU_MAJOR_ID_SM1 == cpu_id.family_id) {
-		printf("use sm1\n");
-		switch (ddr_size) {
-			case 0x80000000:
-				if (!strcmp(ddr_mode, "1g")) {
-					strcpy(loc_name, "sm1_ac213_1g\0");
-					break;
-				}
-				strcpy(loc_name, "sm1_ac213_2g\0");
-				break;
-			case 0x40000000:
-				strcpy(loc_name, "sm1_ac213_1g\0");
-				break;
-			case 0x2000000:
-				strcpy(loc_name, "sm1_ac213_512m\0");
-				break;
-			default:
-				strcpy(loc_name, "sm1_ac213_unsupport");
-				break;
-		}
-	}
-	else {
-		printf("use g12a\n");
-		switch (ddr_size) {
-			case 0x80000000:
-				if (!strcmp(ddr_mode, "1g")) {
-					strcpy(loc_name, "g12a_u212_1g\0");
-					break;
-				}
-				strcpy(loc_name, "g12a_s905y2_deadpool\0");
-				break;
-			case 0x40000000:
-				strcpy(loc_name, "g12a_u212_1g\0");
-				break;
-			case 0x2000000:
-				strcpy(loc_name, "g12a_u212_512m\0");
-				break;
-			default:
-				strcpy(loc_name, "g12a_u212_unsupport");
-				break;
-		}
+	printf("checkhw:  hwid = %d\n", hwid);
+
+
+	switch (hwid) {
+		case 1:
+			strcpy(loc_name, "txl_p321_v1\0");
+			break;
+		case 2:
+			strcpy(loc_name, "txl_p321_v2\0");
+			break;
+		default:
+			strcpy(loc_name, "txl_p321_v1");
+			break;
 	}
 	strcpy(name, loc_name);
 	setenv("aml_dt", loc_name);

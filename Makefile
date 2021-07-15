@@ -246,10 +246,6 @@ ifeq ($(HOSTARCH),$(ARCH))
 CROSS_COMPILE ?=
 endif
 
-CROSS_COMPILE ?= /opt/gcc-linaro-aarch64-none-elf-4.8-2013.11_linux/bin/aarch64-none-elf-
-CROSS_COMPILE_T32 ?= /opt/gcc-arm-none-eabi-6-2017-q2-update/bin/arm-none-eabi-
-export CROSS_COMPILE
-export CROSS_COMPILE_T32
 
 KCONFIG_CONFIG	?= .config
 export KCONFIG_CONFIG
@@ -446,6 +442,10 @@ ifeq ($(KBUILD_EXTMOD),)
                         mixed-targets := 1
                 endif
         endif
+endif
+
+ifneq ($(ENABLE_UBOOT_UPDATE),1)
+	KBUILD_CFLAGS += -DAML_DISABLE_UPDATE_MODE
 endif
 
 ifeq ($(mixed-targets),1)
@@ -672,6 +672,7 @@ libs-y		:= $(patsubst %/, %/built-in.o, $(libs-y))
 u-boot-init := $(head-y)
 u-boot-main := $(libs-y)
 
+
 # Add GCC lib
 ifeq ($(CONFIG_USE_PRIVATE_LIBGCC),y)
 PLATFORM_LIBGCC = arch/$(ARCH)/lib/lib.a
@@ -726,6 +727,7 @@ ALL-y += u-boot.hex
 ifeq ($(CONFIG_NEED_BL301), y)
 ALL-y += bl301.bin
 endif
+ALL-$(CONFIG_AML_DOLBY) += dovi
 ALL-$(CONFIG_ONENAND_U_BOOT) += u-boot-onenand.bin
 ifeq ($(CONFIG_SPL_FSL_PBL),y)
 ALL-$(CONFIG_RAMBOOT_PBL) += u-boot-with-spl-pbl.bin
@@ -869,6 +871,12 @@ acs.bin: tools prepare u-boot.bin
 .PHONY : bl21.bin
 bl21.bin: tools prepare u-boot.bin acs.bin
 	$(Q)$(MAKE) -C $(srctree)/$(CPUDIR)/${SOC}/firmware/bl21 all FIRMWARE=$@
+
+.PHONY : dovi
+dovi: tools prepare u-boot
+ifeq ($(CONFIG_AML_DOLBY), y)
+	$(Q)$(MAKE) -C $(srctree)/drivers/display/osd/dv dovi.o
+endif
 
 #
 # U-Boot entry point, needed for booting of full-blown U-Boot
@@ -1107,7 +1115,7 @@ cmd_smap = \
 	$(CC) $(c_flags) -DSYSTEM_MAP="\"$${smap}\"" \
 		-c $(srctree)/common/system_map.c -o common/system_map.o
 
-u-boot: $(u-boot-init) $(u-boot-main) u-boot.lds
+u-boot:	dovi $(u-boot-init) $(u-boot-main) u-boot.lds
 	$(call if_changed,u-boot__)
 ifeq ($(CONFIG_KALLSYMS),y)
 	$(call cmd,smap)

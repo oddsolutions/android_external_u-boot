@@ -111,7 +111,7 @@
         "frac_rate_policy=1\0" \
         "usb_burning=update 1000\0" \
         "fdt_high=0x20000000\0"\
-        "lock=10100000\0"\
+        "lock=00000000\0"\
         "try_auto_burn=update 700 750;\0"\
         "sdcburncfg=aml_sdc_burn.ini\0"\
         "sdc_burning=sdc_burn ${sdcburncfg}\0"\

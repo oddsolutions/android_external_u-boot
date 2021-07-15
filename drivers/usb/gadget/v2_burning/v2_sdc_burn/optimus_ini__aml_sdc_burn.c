@@ -49,8 +49,8 @@ ConfigPara_t g_sdcBurnPara = {
     },
 
     .custom         = {
-        .eraseBootloader    = 1,//default to erase bootloader! no effect for usb_upgrade
-        .eraseFlash         = 1,//default erase flash for all cases
+        .eraseBootloader    = 1,//default to erase bootloader!
+        .eraseFlash         = 0,//default no erase flash for usb disk upgrade
         .bitsMap.eraseBootloader    = 1,
         .bitsMap.eraseFlash         = 1,
     },

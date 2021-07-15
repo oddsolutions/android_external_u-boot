@@ -238,6 +238,8 @@ struct _mmc_device{
 typedef struct LockData {
 	uint8_t version_major;
 	uint8_t version_minor;
+
+	/* 0: not unlockable 1: unlockable */
 	uint8_t unlock_ability;
 
 	/* Padding to eight bytes. */
@@ -251,7 +253,7 @@ typedef struct LockData {
 
 	/* 0: enable bootloader version rollback 1: prevent bootloader version rollback*/
 	uint8_t lock_bootloader;
-	uint8_t reserved2[1];
+	uint8_t reserved2;
 } LockData_t;
 
 /*512Bytes*/
@@ -283,6 +285,9 @@ struct virtual_partition *aml_get_virtual_partition_by_name(const char *name);
 bool aml_is_emmc_tsd (struct mmc *mmc);
 int mmc_device_init (struct mmc *mmc);
 ulong _get_inherent_offset(const char *name);
+
+int get_lock_data(struct LockData *lock_data);
+int save_lock_data(const struct LockData *lock_data);
 
 #define PARTITION_ELEMENT(na, sz, flags) {.name = na, .size = sz, .mask_flags = flags,}
 

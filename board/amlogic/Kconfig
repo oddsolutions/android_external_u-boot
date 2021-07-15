@@ -51,10 +51,6 @@ config GXL_P212_V1
 	bool "Support amlogic gxl p212 board"
 	default n
 
-config GXL_P244_V1
-	bool "Support amlogic gxl p244 board"
-	default n
-
 config GXL_P281_V1
 	bool "Support amlogic gxl p281 board"
 	default n
@@ -208,10 +204,6 @@ config G12A_DEADPOOL_V1
 	bool "Support amlogic g12a deadpool v1 board"
 	default n
 
-config SM1_ELEKTRA_V1
-	bool "Support amlogic sm1 elektra v1 board"
-	default n
-
 config G12A_U220_V1
 	bool "Support amlogic g12a u220 v1 board"
 	default n
@@ -352,10 +344,6 @@ endif
 
 if GXL_SEI210_V1
 source "board/amlogic/gxl_beast_v1/Kconfig"
-endif
-
-if GXL_P244_V1
-source "board/amlogic/gxl_p244_v1/Kconfig"
 endif
 
 if GXL_P281_V1
@@ -509,10 +497,6 @@ endif
 
 if G12A_DEADPOOL_V1
 source "board/amlogic/g12a_deadpool_v1/Kconfig"
-endif
-
-if SM1_ELEKTRA_V1
-source "board/amlogic/sm1_elektra_v1/Kconfig"
 endif
 
 if G12A_U220_V1

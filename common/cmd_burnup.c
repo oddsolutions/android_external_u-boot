@@ -34,7 +34,9 @@ Description:
 #define ErrP(fmt...)   printf("[burnup]Err:%s,L%d:", __func__, __LINE__),printf(fmt)
 
 static unsigned char *cmd_name = (unsigned char *)("store");
+#ifdef CONFIG_AML_V2_FACTORY_BURN
 const char*   _usbDownPartImgType = "";
+#endif //CONFIG_AML_V2_FACTORY_BURN
 
 #define MtdAlignBits    (12) //32k
 #define MtdAlignSz      (1U << MtdAlignBits)
@@ -84,12 +86,14 @@ int store_read_ops(unsigned char *partition_name,unsigned char * buf, uint64_t o
                 MsgP("Rd:Up sz 0x%llx to align 0x%x\n", size, MtdAlignSz);
                 size = ((size + MtdAlignMask)>>MtdAlignBits) << MtdAlignBits;
         }
+#ifdef CONFIG_AML_V2_FACTORY_BURN
 #if defined(UBIFS_IMG) || defined(CONFIG_CMD_UBIFS)
         if (!strcmp(_usbDownPartImgType, "ubifs")) {
                 sprintf(str, "%s  read 0x%llx %s 0x%llx", "ubi", addr, name, size);
                 MsgP("cmd[%s]", str);
         } else
 #endif
+#endif //CONFIG_AML_V2_FACTORY_BURN
 #endif//#if CONFIG_AML_MTD
         {// not ubi part
                 sprintf(str, "%s  read %s 0x%llx  0x%llx  0x%llx", cmd_name, name, addr, off, size);
@@ -149,11 +153,13 @@ int store_write_ops(unsigned char *partition_name,unsigned char * buf, uint64_t 
                 MsgP("Wr:Up sz 0x%llx to align 0x%x\n", size, MtdAlignSz);
                 size = ((size + MtdAlignMask)>>MtdAlignBits) << MtdAlignBits;
         }
+#ifdef CONFIG_AML_V2_FACTORY_BURN
 #if defined(UBIFS_IMG) || defined(CONFIG_CMD_UBIFS)
         if (!strcmp(_usbDownPartImgType, "ubifs")) {//ubi part
                 sprintf(str, "%s  write 0x%llx %s 0x%llx  ", "ubi", addr, name, size);
         } else
 #endif// #if defined(UBIFS_IMG) || defined(CONFIG_CMD_UBIFS)
+#endif //CONFIG_AML_V2_FACTORY_BURN
 #endif// #if CONFIG_AML_MTD
         {
                 sprintf(str, "%s  write %s 0x%llx  0x%llx  0x%llx", cmd_name, name, addr, off, size);

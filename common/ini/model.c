@@ -49,9 +49,7 @@ static int model_debug_flag;
 static int gLcdDataCnt, gLcdExtDataCnt, gBlDataCnt;
 static int g_lcd_pwr_on_seq_cnt, g_lcd_pwr_off_seq_cnt;
 static int gLcdTconDataCnt;
-static int gLcdExtInitOnCnt, gLcdExtInitOffCnt, gLcdExtCmdSize;
-
-static int handle_tcon_ext_pmu_data(int index, unsigned char *buf);
+static int gLcdExtInitOnCnt, gLcdExtInitOffCnt;
 
 static int transBufferData(const char *data_str, unsigned int data_buf[]) {
 	int item_ind = 0;
@@ -169,7 +167,7 @@ static int handle_tcon_path(void)
 {
 	const char *ini_value = NULL;
 
-	ini_value = IniGetString("tcon_Path", "TCON_BIN_PATH", "null");
+	ini_value = IniGetString("lcd_Path", "TCON_BIN_PATH", "null");
 	if (strcmp(ini_value, "null") != 0)
 		setenv("model_tcon", ini_value);
 	else if (model_debug_flag & DEBUG_TCON)
@@ -192,36 +190,6 @@ static int handle_tcon_path(void)
 		setenv("model_tcon_demura_lut", ini_value);
 	else if (model_debug_flag & DEBUG_TCON)
 		ALOGE("%s, demura lut load file error!\n", __func__);
-
-	ini_value = IniGetString("tcon_Path", "TCON_ACC_LUT_PATH", "null");
-	if (strcmp(ini_value, "null") != 0)
-		setenv("model_tcon_acc_lut", ini_value);
-	else if (model_debug_flag & DEBUG_TCON)
-		ALOGE("%s, acc lut load file error!\n", __func__);
-
-	ini_value = IniGetString("tcon_Path", "TCON_EXT_B0_BIN_PATH", "null");
-	if (strcmp(ini_value, "null") != 0)
-		setenv("model_tcon_ext_b0", ini_value);
-	else if (model_debug_flag & DEBUG_TCON)
-		ALOGE("%s, tcon_ext_c0 bin load file error!\n", __func__);
-
-	ini_value = IniGetString("tcon_Path", "TCON_EXT_B1_BIN_PATH", "null");
-	if (strcmp(ini_value, "null") != 0)
-		setenv("model_tcon_ext_b1", ini_value);
-	else if (model_debug_flag & DEBUG_TCON)
-		ALOGE("%s, tcon_ext_c1 bin load file error!\n", __func__);
-
-	ini_value = IniGetString("tcon_Path", "TCON_EXT_B0_SPI_BIN_PATH", "null");
-	if (strcmp(ini_value, "null") != 0)
-		setenv("model_tcon_ext_b0_spi", ini_value);
-	else if (model_debug_flag & DEBUG_TCON)
-		ALOGE("%s, tcon_ext_b0_spi bin load file error!\n", __func__);
-
-	ini_value = IniGetString("tcon_Path", "TCON_EXT_B1_SPI_BIN_PATH", "null");
-	if (strcmp(ini_value, "null") != 0)
-		setenv("model_tcon_ext_b1_spi", ini_value);
-	else if (model_debug_flag & DEBUG_TCON)
-		ALOGE("%s, tcon_ext_b1_spi bin load file error!\n", __func__);
 
 	return 0;
 }
@@ -624,97 +592,29 @@ static int handle_lcd_ext_type(struct lcd_ext_attr_s *p_attr)
 		ALOGD("%s, value_9 is (%s)\n", __func__, ini_value);
 	p_attr->type.value_9 = strtoul(ini_value, NULL, 0);
 
-	if (p_attr->basic.ext_type == LCD_EXTERN_I2C)
-		gLcdExtCmdSize = p_attr->type.value_3;
-	else if (p_attr->basic.ext_type == LCD_EXTERN_SPI)
-		gLcdExtCmdSize = p_attr->type.value_6;
-	else
-		gLcdExtCmdSize = p_attr->type.value_9;
-
 	return 0;
 }
 
 static int handle_lcd_ext_cmd_data(struct lcd_ext_attr_s *p_attr)
 {
-	int i = 0, j = 0, k, tmp_cnt = 0, tmp_off = 0;
+	int i = 0, tmp_cnt = 0, tmp_off = 0;
 	const char *ini_value = NULL;
 	unsigned int tmp_buf[2048];
-	unsigned char *b0_data_buf, *b1_data_buf, *data_buf = NULL;
-	unsigned int data_size = 0;
 
-	/* orignal data in ini */
+
 	ini_value = IniGetString("lcd_ext_Attr", "init_on", "null");
 	if (model_debug_flag & DEBUG_LCD_EXTERN)
 		ALOGD("%s, init_on is (%s)\n", __func__, ini_value);
 	tmp_cnt = transBufferData(ini_value, tmp_buf);
-
-	b0_data_buf = (unsigned char *)malloc(LCD_EXTERN_INIT_ON_MAX);
-	if (b0_data_buf == NULL) {
-		ALOGE("%s, malloc buffer memory error!!!\n", __func__);
-		return -1;
-	}
-
-	b1_data_buf = (unsigned char *)malloc(LCD_EXTERN_INIT_ON_MAX);
-	if (b1_data_buf == NULL) {
-		free(b0_data_buf);
-		b0_data_buf = NULL;
-		ALOGE("%s, malloc buffer memory error!!!\n", __func__);
-		return -1;
-	}
-
-	/* data check and copy */
 	if (tmp_cnt > LCD_EXTERN_INIT_ON_MAX) {
-		ALOGE("%s: invalid init_on data\n", __func__);
+		printf("error: %s: invalid init_on data\n", __func__);
 		p_attr->cmd_data[0] = LCD_EXTERN_INIT_END;
 		p_attr->cmd_data[1] = 0;
 		gLcdExtInitOnCnt = 2;
 	} else {
-		if (gLcdExtCmdSize == 0xff) {
-			handle_tcon_ext_pmu_data(0, b0_data_buf);
-			handle_tcon_ext_pmu_data(1, b1_data_buf);
-			i = 0;
-			j = 0;
-			while (i < tmp_cnt) {
-				p_attr->cmd_data[j] = tmp_buf[i];
-				if (p_attr->cmd_data[j] == LCD_EXTERN_INIT_END) {
-					p_attr->cmd_data[j + 1] = 0;
-					j += 2;
-					break;
-				}
-				data_buf = NULL;
-				if (p_attr->cmd_data[j] == 0xb0) {
-					if (b0_data_buf) {
-						if (b0_data_buf[0]) /* data size valid */
-							data_buf = b0_data_buf;
-					}
-				} else if (p_attr->cmd_data[j] == 0xb1) {
-					if (b1_data_buf) {
-						if (b1_data_buf[0]) /* data size valid */
-							data_buf = b1_data_buf;
-					}
-				}
-				if (data_buf) { /* bin data */
-					data_size = data_buf[0];
-					p_attr->cmd_data[j + 1] = data_size;
-					memcpy(&p_attr->cmd_data[j + 2],
-						&data_buf[1], data_size);
-				} else { /* orignal ini data */
-					data_size = tmp_buf[i + 1];
-					p_attr->cmd_data[j + 1] = data_size;
-					for (k = 0; k < data_size; k++) {
-						p_attr->cmd_data[j + 2 + k] =
-							(unsigned char)tmp_buf[i + 2 +k];
-					}
-				}
-				j += data_size + 2;
-				i += tmp_buf[i + 1] + 2; /* raw data */
-			}
-			gLcdExtInitOnCnt = j;
-		} else {
-			for (i = 0; i < tmp_cnt; i++)
-				p_attr->cmd_data[i] = tmp_buf[i];
-			gLcdExtInitOnCnt = tmp_cnt;
-		}
+		for (i = 0; i < tmp_cnt; i++)
+			p_attr->cmd_data[i] = tmp_buf[i];
+		gLcdExtInitOnCnt = tmp_cnt;
 	}
 
 	tmp_off = gLcdExtInitOnCnt;
@@ -722,8 +622,8 @@ static int handle_lcd_ext_cmd_data(struct lcd_ext_attr_s *p_attr)
 	if (model_debug_flag & DEBUG_LCD_EXTERN)
 		ALOGD("%s, init_off is (%s)\n", __func__, ini_value);
 	tmp_cnt = transBufferData(ini_value, tmp_buf);
-	if (tmp_cnt > LCD_EXTERN_INIT_OFF_MAX) {
-		ALOGE("%s: invalid init_off data\n", __func__);
+	if (tmp_cnt > LCD_EXTERN_INIT_ON_MAX) {
+		printf("error: %s: invalid init_off data\n", __func__);
 		p_attr->cmd_data[tmp_off+0] = LCD_EXTERN_INIT_END;
 		p_attr->cmd_data[tmp_off+1] = 0;
 		gLcdExtInitOnCnt = 2;
@@ -733,22 +633,14 @@ static int handle_lcd_ext_cmd_data(struct lcd_ext_attr_s *p_attr)
 		gLcdExtInitOffCnt = tmp_cnt;
 	}
 
-	if (model_debug_flag & DEBUG_LCD_EXTERN) {
-		ALOGD("%s, init_on_data:\n", __func__);
-		for (i = 0; i < gLcdExtInitOnCnt; i++) {
-			printf("  [%d] = 0x%02x\n", i, p_attr->cmd_data[i]);
-		}
+#if 0
+	for (i = 0; i < gLcdExtInitOnCnt; i++)
+		ALOGD("%s, init_on_data[%d] = 0x%02x\n", __func__, i, p_attr->cmd_data[i]);
 
-		ALOGD("%s, init_off_data:\n", __func__);
-		for (i = 0; i < gLcdExtInitOffCnt; i++) {
-			ALOGD("  [%d] = 0x%02x\n", i, p_attr->cmd_data[tmp_off+i]);
-		}
-	}
+	for (i = 0; i < gLcdExtInitOffCnt; i++)
+		ALOGD("%s, init_off_data[%d] = 0x%02x\n", __func__, i, p_attr->cmd_data[tmp_off+i]);
+#endif
 
-	free(b0_data_buf);
-	b0_data_buf = NULL;
-	free(b1_data_buf);
-	b1_data_buf = NULL;
 	return 0;
 }
 
@@ -1381,73 +1273,6 @@ static int handle_tcon_bin(void)
 	return 0;
 }
 
-static int handle_tcon_ext_pmu_data(int index, unsigned char *buf)
-{
-	char *file_name, str[2][30];
-	unsigned int data_size = 0, i, file_find = 0;
-
-	if (!buf) {
-		ALOGE("%s, buf is null\n", __func__);
-		return -1;
-	}
-	buf[0] = 0; /* init invalid data */
-	i = 0;
-
-	if (index == 0) {
-		sprintf(str[0], "model_tcon_ext_b0_spi");
-		sprintf(str[1], "model_tcon_ext_b0");
-	} else {
-		sprintf(str[0], "model_tcon_ext_b1_spi");
-		sprintf(str[1], "model_tcon_ext_b1");
-	}
-
-	while (i < 2) {
-		file_name = getenv(str[i]);
-		if (file_name == NULL) {
-			if (model_debug_flag & DEBUG_NORMAL)
-				ALOGD("%s: no %s path\n", __func__, str[i]);
-		} else {
-			if (iniIsFileExist(file_name)) {
-				if (model_debug_flag & DEBUG_NORMAL)
-					ALOGD("%s: %s: %s\n", __func__, str[i], file_name);
-				file_find = 1;
-				break;
-			}
-			if (model_debug_flag & DEBUG_NORMAL) {
-				ALOGE("%s: %s: \"%s\" not exist.\n",
-					__func__, str[i], file_name);
-			}
-		}
-		i++;
-	}
-	if (file_find == 0)
-		return -1;
-
-	data_size = read_bin_file(file_name, LCD_EXTERN_INIT_ON_MAX);
-	if (data_size == 0) {
-		ALOGE("%s, %s data_size %d error!\n", __func__, str[i], data_size);
-		return -1;
-	}
-
-	buf[0] = (data_size + 1); /* data size include reg start */
-	buf[1] = 0x00;            /* reg start */
-	GetBinData(&buf[2], data_size);
-
-	if (model_debug_flag & DEBUG_LCD_EXTERN) {
-		ALOGD("%s: %s:\n", __func__, str[i]);
-		for (i = 0; i < (data_size + 2); i++)
-			printf(" 0x%02x", buf[i]);
-		printf("\n");
-	}
-
-	if (model_debug_flag & DEBUG_NORMAL)
-		ALOGD("%s %s finish\n", __func__, str[i]);
-
-	BinFileUninit();
-
-	return 0;
-}
-
 #define TCON_VAC_SET_PARAM_NUM    3
 #define TCON_VAC_LUT_PARAM_NUM    256
 int handle_tcon_vac(unsigned char *vac_data, unsigned int vac_mem_size)
@@ -1489,13 +1314,12 @@ int handle_tcon_vac(unsigned char *vac_data, unsigned int vac_mem_size)
 	if (model_debug_flag & DEBUG_TCON)
 		ALOGD("vac_data addr: 0x%p\n", vac_data);
 
-	n = 8;
+	n = 0;
 	len = TCON_VAC_SET_PARAM_NUM;
 
 	ini_value = IniGetString("lcd_tcon_vac", "vac_set", "null");
 	tmp_cnt = transBufferData(ini_value, tmp_buf);
 	data_cnt = tmp_cnt;
-
 	if ((tmp_cnt > CC_MAX_TCON_VAC_SIZE) || (tmp_cnt < len)) {
 		ALOGE("%s: invalid vac_set data cnt %d\n", __func__, tmp_cnt);
 		return -1;
@@ -1510,15 +1334,15 @@ int handle_tcon_vac(unsigned char *vac_data, unsigned int vac_mem_size)
 		vac_data[n+i*2+1] = (tmp_buf[i] >> 8) & 0xff;
 		if (model_debug_flag & DEBUG_TCON) {
 			ALOGD("vac_set: 0x%02x, 0x%02x; tmp_buf: 0x%04x\n",
-			      vac_data[n+i*2], vac_data[n+i*2+1],
-			      tmp_buf[i]);
+				vac_data[n+i*2], vac_data[n+i*2+1],
+				tmp_buf[i]);
 		}
 	}
 
 	len = TCON_VAC_LUT_PARAM_NUM;
 
 	ini_value = IniGetString("lcd_tcon_vac", "vac_ramt1", "null");
-		tmp_cnt = transBufferData(ini_value, tmp_buf);
+	tmp_cnt = transBufferData(ini_value, tmp_buf);
 	data_cnt += tmp_cnt;
 	if ((tmp_cnt > CC_MAX_TCON_VAC_SIZE) || (tmp_cnt < len)) {
 		ALOGE("%s: invalid vac_ramt1 data cnt %d\n", __func__, tmp_cnt);
@@ -1541,7 +1365,7 @@ int handle_tcon_vac(unsigned char *vac_data, unsigned int vac_mem_size)
 	}
 
 	ini_value = IniGetString("lcd_tcon_vac", "vac_ramt2", "null");
-		tmp_cnt = transBufferData(ini_value, tmp_buf);
+	tmp_cnt = transBufferData(ini_value, tmp_buf);
 	data_cnt += tmp_cnt;
 	if ((tmp_cnt > CC_MAX_TCON_VAC_SIZE) || (tmp_cnt < len)) {
 		ALOGE("%s: invalid vac_ramt2 data cnt %d\n", __func__, tmp_cnt);
@@ -1694,22 +1518,10 @@ int handle_tcon_vac(unsigned char *vac_data, unsigned int vac_mem_size)
 		vac_data[n+i*2+1] = (tmp_buf[i] >> 8) & 0xff;
 		if ((model_debug_flag & DEBUG_TCON) && (i < 30)) {
 			ALOGD("vac_ramt3_6_data: 0x%02x, 0x%02x; tmp_buf: 0x%04x\n",
-			      vac_data[n+i*2], vac_data[n+i*2+1],
-			      tmp_buf[i]);
+				vac_data[n+i*2], vac_data[n+i*2+1],
+				tmp_buf[i]);
 		}
 	}
-
-	/*add check data: total_size(4byte) + crc(4byte) +
-	 *crc todo
-	*/
-	vac_data[0] = data_cnt & 0xff;
-	vac_data[1] = (data_cnt >> 8) & 0xff;
-	vac_data[2] = (data_cnt >> 16) & 0xff;
-	vac_data[3] = (data_cnt >> 24) & 0xff;
-	vac_data[4] = 0;
-	vac_data[5] = 0;
-	vac_data[6] = 0;
-	vac_data[7] = 0;
 
 	if (model_debug_flag & DEBUG_NORMAL)
 		ALOGD("%s finish\n", __func__);
@@ -1723,7 +1535,6 @@ int handle_tcon_demura_set(unsigned char *demura_set_data,
 {
 	unsigned long int bin_size;
 	char *file_name;
-	int n;
 
 	file_name = getenv("model_tcon_demura_set");
 	if (file_name == NULL) {
@@ -1751,16 +1562,7 @@ int handle_tcon_demura_set(unsigned char *demura_set_data,
 		return -1;
 	}
 
-	n = 8;
-	demura_set_data[0] = bin_size & 0xff;
-	demura_set_data[1] = (bin_size >> 8) & 0xff;
-	demura_set_data[2] = (bin_size >> 16) & 0xff;
-	demura_set_data[3] = (bin_size >> 24) & 0xff;
-	demura_set_data[4] = 0;
-	demura_set_data[5] = 0;
-	demura_set_data[6] = 0;
-	demura_set_data[7] = 0;
-	GetBinData(&demura_set_data[n], bin_size);
+	GetBinData(demura_set_data, bin_size);
 
 	if (model_debug_flag & DEBUG_NORMAL)
 		ALOGD("%s finish\n", __func__);
@@ -1775,7 +1577,6 @@ int handle_tcon_demura_lut(unsigned char *demura_lut_data,
 {
 	unsigned long int bin_size;
 	char *file_name;
-	int n;
 
 	file_name = getenv("model_tcon_demura_lut");
 	if (file_name == NULL) {
@@ -1803,71 +1604,10 @@ int handle_tcon_demura_lut(unsigned char *demura_lut_data,
 		return -1;
 	}
 
-	n = 8;
-	demura_lut_data[0] = bin_size & 0xff;
-	demura_lut_data[1] = (bin_size >> 8) & 0xff;
-	demura_lut_data[2] = (bin_size >> 16) & 0xff;
-	demura_lut_data[3] = (bin_size >> 24) & 0xff;
-	demura_lut_data[4] = 0;
-	demura_lut_data[5] = 0;
-	demura_lut_data[6] = 0;
-	demura_lut_data[7] = 0;
-	GetBinData(&demura_lut_data[n], bin_size);
+	GetBinData(demura_lut_data, bin_size);
 
-	if (model_debug_flag)
-		ALOGD("%s finish, bin_size = 0x%lx\n", __func__, bin_size);
-
-	BinFileUninit();
-
-	return 0;
-}
-
-int handle_tcon_acc_lut(unsigned char *acc_lut_data, unsigned int acc_lut_size)
-{
-	unsigned long int bin_size;
-	char *file_name;
-	int n;
-
-	file_name = getenv("model_tcon_acc_lut");
-	if (!file_name) {
-		if (model_debug_flag & DEBUG_NORMAL)
-			ALOGD("%s, no model_tcon_acc_lut path\n", __func__);
-		return -1;
-	}
-
-	if ((!acc_lut_data) || (acc_lut_size == 0)) {
-		ALOGE("%s, buffer memory or size error!!!\n", __func__);
-		return -1;
-	}
-
-	if (!iniIsFileExist(file_name)) {
-		ALOGE("%s, model_tcon_demura_lut file name \"%s\" not exist.\n",
-			__func__, file_name);
-		return -1;
-	}
 	if (model_debug_flag & DEBUG_NORMAL)
-		ALOGD("%s: model_tcon_demura_lut: %s\n", __func__, file_name);
-
-	bin_size = read_bin_file(file_name, CC_MAX_TCON_ACC_LUT_SIZE);
-	if (!bin_size || (bin_size > acc_lut_size)) {
-		ALOGE("%s, bin_size 0x%lx error!(memory_size 0x%x)\n",
-		      __func__, bin_size, acc_lut_size);
-		return -1;
-	}
-
-	n = 8;
-	acc_lut_data[0] = bin_size & 0xff;
-	acc_lut_data[1] = (bin_size >> 8) & 0xff;
-	acc_lut_data[2] = (bin_size >> 16) & 0xff;
-	acc_lut_data[3] = (bin_size >> 24) & 0xff;
-	acc_lut_data[4] = 0;
-	acc_lut_data[5] = 0;
-	acc_lut_data[6] = 0;
-	acc_lut_data[7] = 0;
-	GetBinData(&acc_lut_data[n], bin_size);
-
-	if (model_debug_flag)
-		ALOGD("%s finish, bin_size = 0x%lx\n", __func__, bin_size);
+		ALOGD("%s finish\n", __func__);
 
 	BinFileUninit();
 

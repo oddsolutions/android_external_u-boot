@@ -1992,7 +1992,7 @@ pattern_6[3][7] =	0xcae4cd7f	;
 */
 
 #define dwc_ddrphy_apb_wr(addr, dat)   *(volatile uint16_t *)(int_convter_p(((addr) << 1)+0xfe000000))=((uint16_t)dat)
-#define dwc_ddrphy_apb_rd(addr)   *(volatile uint16_t *)(int_convter_p(((addr) << 1)+0xfe000000))
+//#define dwc_ddrphy_apb_rd(addr)   *(volatile uint16_t *)(int_convter_p(((addr) << 1)+0xfe000000))
 #define ACX_MAX                              0x80
 
 void ddr_udelay(unsigned int us)
@@ -2003,6 +2003,18 @@ void ddr_udelay(unsigned int us)
 	while ((*((P_EE_TIMER_E))) - t0 <= us)
 		;
 //#endif
+}
+
+//#define dwc_ddrphy_apb_rd(addr)   *(volatile uint16_t *)(int_convter_p(((addr) << 1)+0xfe000000))
+unsigned int  dwc_ddrphy_apb_rd(unsigned int addr) 
+{
+	unsigned int  return_value=0;
+	ddr_udelay(1);
+
+	//return 0;
+	return_value=*(volatile uint16_t *)(int_convter_p(((addr) << 1)+0xfe000000));
+	ddr_udelay(1);
+	return	return_value;
 }
 
 #define DDR_PARAMETER_SOURCE_FROM_DMC_STICKY  1 
@@ -22737,7 +22749,7 @@ int do_ddr_display_g12_ddr_information(cmd_tbl_t *cmdtp, int flag, int argc, cha
 		uint16_t  delay_org=0;
 		uint16_t  delay_temp=0;
 		uint32_t  add_offset=0;
-		dwc_ddrphy_apb_wr(0xd0000,0x0);
+		//dwc_ddrphy_apb_wr(0xd0000,0x0);
 		bdlr_100step=get_bdlr_100step(global_ddr_clk);
 		ui_1_32_100step=(1000000*100/(global_ddr_clk*2*32));
 
@@ -23366,6 +23378,7 @@ int do_ddr_display_g12_ddr_information(cmd_tbl_t *cmdtp, int flag, int argc, cha
 
 int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
+	//printf("\njiaxing has changed this file!\n");
 
 	int i=0;
 	int count=0;
@@ -23385,11 +23398,18 @@ int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const ar
 		{
 			enable_ddr_fast_boot = 0;
 		}
-		//	count++;
+		//count++;
 	}
 	if(!enable_ddr_fast_boot)
 		return 1;
-
+	{
+		printf("disable the DMC retraining\n");
+		#define DMC_PHY_RETRAINING_CTRL                         ((0x0097  << 2) + 0xff638400)
+		uint32_t dmc_phy_retraining_ctrl=0;
+		dmc_phy_retraining_ctrl=rd_reg(DMC_PHY_RETRAINING_CTRL);
+		wr_reg(DMC_PHY_RETRAINING_CTRL,dmc_phy_retraining_ctrl&(~(1<<31)));
+		//diable the lpddr4 retraining before reading the phy register to avoid a random conflict between the retraining status machine and the CPU;
+	}
 	ddr_set_t *ddr_set_t_p=NULL;
 	ddr_set_t_p=(ddr_set_t *)(ddr_set_t_p_arrary);
 	//ddr_set_t_p= (ddr_set_t *)G12_DMC_STICKY_0;
@@ -23401,10 +23421,16 @@ int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const ar
 	printf("\nddr_set_t_p==0x%08x\n",ddr_set_add);
 	uint32_t loop=0; 
 	uint32_t loop_max = (4+(0x3f<<2));//((DMC_STICKY_63-DMC_STICKY_0));
-	//	loop_max=sizeof(ddr_set_t);
+	//loop_max=sizeof(ddr_set_t);
 	for (loop = 0; loop <loop_max; loop+=4) {
 		wr_reg(((uint64_t)(ddr_set_t_p) + loop), rd_reg(G12_DMC_STICKY_0 + loop));
 	}
+
+#define DMC_PHY_RETRAINING_CTRL                         ((0x0097  << 2) + 0xff638400)
+
+uint32_t dmc_phy_retraining_ctrl=0;
+dmc_phy_retraining_ctrl=rd_reg(DMC_PHY_RETRAINING_CTRL);
+wr_reg(DMC_PHY_RETRAINING_CTRL,dmc_phy_retraining_ctrl&(~(1<<31)));
 			
 {
 	uint16_t	dq_bit_delay[72];
@@ -23412,13 +23438,13 @@ int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const ar
 	uint16_t  delay_org=0;
 	uint16_t  delay_temp=0;
 	uint32_t  add_offset=0;
-	dwc_ddrphy_apb_wr(0xd0000,0x0);
+	//dwc_ddrphy_apb_wr(0xd0000,0x0);
 
 	char dmc_test_worst_window_rx=0;
 	char dmc_test_worst_window_tx=0;
 
 	{
-	dwc_ddrphy_apb_wr((0<<20)|(0xd<<16)|(0<<12)|(0x0),0); // DWC_DDRPHYA_APBONLY0_MicroContMuxSel
+	//dwc_ddrphy_apb_wr((0<<20)|(0xd<<16)|(0<<12)|(0x0),0); // DWC_DDRPHYA_APBONLY0_MicroContMuxSel
 
 	dmc_test_worst_window_tx=dwc_ddrphy_apb_rd((0<<20)|(1<<16)|(0<<12)|(0x0c2));
 	dmc_test_worst_window_rx=dwc_ddrphy_apb_rd((0<<20)|(1<<16)|(0<<12)|(0x0c3));
@@ -23433,7 +23459,7 @@ int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const ar
 	
 	{
 	//printf("\n ARdPtrInitVal");
-	add_offset=((0<<20)|(0<<16)|(0<<12)|(0x2e));
+	add_offset=((0<<20)|(2<<16)|(0<<12)|(0x2e));
 	delay_org=dwc_ddrphy_apb_rd(add_offset);
 	ddr_set_t_p->ARdPtrInitVal=delay_org;
 	//printf("\n t_count: %04d %04d  %08x %08x",0,delay_org,((((add_offset) << 1)+0xfe000000)),delay_org);
@@ -23499,6 +23525,8 @@ int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const ar
 	}
 	{
 	//	printf("\n write dq_bit delay * 1/32UIx100==%d ps bit0-4 fine tune --step==1/32UI ,bit 6-8 is coarse  --step==1U",ui_1_32_100step);
+	
+
 			for(t_count=0;t_count<72;t_count++)
 			{
 				add_offset=((0<<20)|(1<<16)|(((t_count%36)/9)<<12)|(0xc0+((t_count%9)<<8)+(t_count/36)));
@@ -23514,6 +23542,8 @@ int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const ar
 	}
 	{
 	//	printf("\n read dq_bit delay * BDLRx100==%d ps bit0-4 fine tune --step==bdlr step size about 5ps,no coarse",bdlr_100step);
+	
+
 		for(t_count=0;t_count<72;t_count++)
 		{
 			add_offset=((0<<20)|(1<<16)|(((t_count%36)/9)<<12)|(0x68+((t_count%9)<<8)+(t_count/36)));
@@ -23527,6 +23557,7 @@ int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const ar
 	}
 	{
 	//	printf("\n read dqs gate delay * 1/32UIx100==%d ps bit0-4 fine tune ,bit 6-10 is coarse",ui_1_32_100step);
+
 		for(t_count=0;t_count<16;t_count++)
 		{
 			add_offset=((0<<20)|(1<<16)|(((t_count%8)>>1)<<12)|(0x80+(t_count/8)+((t_count%2)<<8)));
@@ -23543,6 +23574,7 @@ int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const ar
 	//	printf("\n soc vref : lpddr4-- VREF = VDDQ*(0.047 + VrefDAC0[6:0]*0.00367   DDR4 --VREF = VDDQ*(0.510 + VrefDAC0[6:0]*0.00345");
 		//((0<<20)|(1<<16)|(((over_ride_sub_index%36)/9)<<12)|(((over_ride_sub_index%36)%9)<<8)|(0x40),over_ride_value)	
 		uint32_t vref_t_count=0;
+
 		for(t_count=0;t_count<72;t_count++)
 		{
 			add_offset=((0<<20)|(1<<16)|(((t_count%36)/9)<<12)|(((t_count%36)%9)<<8)|(0x40));
@@ -23560,12 +23592,14 @@ int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const ar
 		//printf("\n dram vref : lpddr4-- VREF = VDDQ*(0. + VrefDAC0[6:0]*0.   DDR4 --VREF = VDDQ*(0. + VrefDAC0[6:0]*0.");
 		add_offset=((0<<20)|(1<<16)|(0<<12)|(0x082));
 		delay_temp=dwc_ddrphy_apb_rd(add_offset);
+		
 		for(t_count=0;t_count<32;t_count++)
 		{
 			ddr_set_t_p->dram_bit_vref[t_count]=delay_temp;
 			//	printf("\n t_count: %04d %04d  %08x %08x",t_count,delay_temp,((((add_offset) << 1)+0xfe000000)),dq_bit_delay[t_count]);
 		}
 	//	printf("\n t_count: %04d %04d  %08x %08x",0,delay_temp,((((add_offset) << 1)+0xfe000000)),delay_temp);
+	
 
 		for(t_count=0;t_count<4;t_count++)
 		{//p_dev->p_ddrs->tdqs2dq=lpddr4_tdqs2dq;
@@ -23583,6 +23617,7 @@ int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const ar
 	char str[1024]="";
 	//store ddr_parameter write 0x77f81cf0 0x300
 	//printf("\n ");
+	
 
 	if(enable_ddr_fast_boot==1)
 		ddr_set_t_p->fast_boot[0]=0xff;
@@ -23612,7 +23647,8 @@ int do_ddr_fastboot_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const ar
 		printf("\nstr=%s\n",str);
 		run_command(str,0);
 	}
-
+	printf("\nenable dmc phy retraining ctrl\n");
+	wr_reg(DMC_PHY_RETRAINING_CTRL,dmc_phy_retraining_ctrl);
 	return 1;
 }
 #else
@@ -33420,8 +33456,15 @@ unsigned int do_ddr_read_write_ddr_add__data_window_lcdlr(unsigned int rank_inde
 #endif
 //ouyang
 
-#define dwc_ddrphy_apb_wr(addr, dat)   *(volatile uint16_t *)(int_convter_p(((addr) << 1)+0xfe000000))=((uint16_t)dat)
-#define dwc_ddrphy_apb_rd(addr)   *(volatile uint16_t *)(int_convter_p(((addr) << 1)+0xfe000000))
+//#define dwc_ddrphy_apb_wr(addr, dat)   *(volatile uint16_t *)(int_convter_p(((addr) << 1)+0xfe000000))=((uint16_t)dat)
+//#define dwc_ddrphy_apb_rd(addr)   *(volatile uint16_t *)(int_convter_p(((addr) << 1)+0xfe000000))
+//unsigned int  dwc_ddrphy_apb_rd(unsigned int addr) 
+//{
+
+//ddr_udelay(1);
+//return	*(volatile uint16_t *)(int_convter_p(((addr) << 1)+0xfe000000));
+//}
+
 #define ACX_MAX                              0x80
 
 //dwc_ddrphy_apb_wr((0<<20)|(2<<16)|(0<<12)|(0xb0),0);
@@ -33836,7 +33879,7 @@ uint32_t ddr_cacl_phy_over_ride_back_reg(char test_index,uint32_t value )
 
 unsigned int do_ddr_g12_read_write_ddr_add_window_lcdlr(unsigned int rank_index,unsigned int add_index,unsigned int lcdlr_value,unsigned int read_write_flag )
 {
-	dwc_ddrphy_apb_wr(0xd0000,0);//mw fe1a0000  0
+	//dwc_ddrphy_apb_wr(0xd0000,0);//mw fe1a0000  0
 	//  reg_base_adj=0xfe000000;
 	// reg_add=(((0<<20)|(0<<16)|(test_ACx<<12)|(0x80))<<1) + reg_base_adj;
 		if(read_write_flag==DDR_PARAMETER_READ)
@@ -37130,16 +37173,25 @@ int do_ddr_auto_fastboot_check(cmd_tbl_t *cmdtp, int flag, int argc, char * cons
 
 	printf("\n(ddr_set_t_p->fast_boot[0])==0x%08x\n",(ddr_set_t_p->fast_boot[0]));
 {
+				
+	printf("disable the DMC retraining\n");
+      #define DMC_PHY_RETRAINING_CTRL                         ((0x0097  << 2) + 0xff638400)
+	uint32_t dmc_phy_retraining_ctrl=0;
+	dmc_phy_retraining_ctrl=rd_reg(DMC_PHY_RETRAINING_CTRL);
+	wr_reg(DMC_PHY_RETRAINING_CTRL,dmc_phy_retraining_ctrl&(~(1<<31)));
+	//diable the lpddr4 retraining before reading the phy register to avoid a random conflict between the retraining status machine and the CPU;
+			
+
 		uint16_t	dq_bit_delay[72];
 		unsigned	char t_count=0;
 		uint16_t  delay_org=0;
 		uint16_t  delay_temp=0;
 		uint32_t  add_offset=0;
-		dwc_ddrphy_apb_wr(0xd0000,0x0);
+		//dwc_ddrphy_apb_wr(0xd0000,0x0);
 
 		{
 	//	printf("\n ARdPtrInitVal");
-		add_offset=((0<<20)|(0<<16)|(0<<12)|(0x2e));
+		add_offset=((0<<20)|(2<<16)|(0<<12)|(0x2e));
 		delay_org=dwc_ddrphy_apb_rd(add_offset);
 		ddr_set_t_p->ARdPtrInitVal=delay_org;
 	//	printf("\n t_count: %04d %04d  %08x %08x",0,delay_org,((((add_offset) << 1)+0xfe000000)),delay_org);
@@ -37279,14 +37331,14 @@ int do_ddr_auto_fastboot_check(cmd_tbl_t *cmdtp, int flag, int argc, char * cons
 		ddr_set_t_p->retraining[4*t_count+1]=(dwc_ddrphy_apb_rd((0<<20)|(1<<16)|(t_count<<12)|(0xaa)))>>8;  //PptCtlStatic
 		ddr_set_t_p->retraining[4*t_count+2]=dwc_ddrphy_apb_rd((0<<20)|(1<<16)|(t_count<<12)|(0xae));  //PptDqsCntInvTrnTg0  ps0 rank0 lane 0-3
 		ddr_set_t_p->retraining[4*t_count+3]=dwc_ddrphy_apb_rd((0<<20)|(1<<16)|(t_count<<12)|(0xaf));  //PptDqsCntInvTrnTg0  ps0 rank1 lane 0-3
-	}
+	}		
 }
 
 	if((ddr_set_t_p->fast_boot[0])<0xfe)
 	{
 		printf("\nuboot  auto fast boot  auto window test begin \n");
 		{
-			ddr_set_t_p->fast_boot[0]=0xfe;
+			ddr_set_t_p->fast_boot[0]=0xfd;
 			#if 1
 			printf("&ddr_sha.ddrs : 0x%x\n", (uint32_t)(uint64_t)&ddr_sha.ddrs);
 			printf("&ddr_sha.sha2 : 0x%x\n", (uint32_t)(uint64_t)&ddr_sha.sha2);
@@ -37325,7 +37377,7 @@ int do_ddr_auto_fastboot_check(cmd_tbl_t *cmdtp, int flag, int argc, char * cons
 		char dmc_test_worst_window_tx=0;
 
 		{
-			dwc_ddrphy_apb_wr((0<<20)|(0xd<<16)|(0<<12)|(0x0),0); // DWC_DDRPHYA_APBONLY0_MicroContMuxSel
+			//dwc_ddrphy_apb_wr((0<<20)|(0xd<<16)|(0<<12)|(0x0),0); // DWC_DDRPHYA_APBONLY0_MicroContMuxSel
 
 			dmc_test_worst_window_tx=dwc_ddrphy_apb_rd((0<<20)|(1<<16)|(0<<12)|(0x0c2));
 			dmc_test_worst_window_rx=dwc_ddrphy_apb_rd((0<<20)|(1<<16)|(0<<12)|(0x0c3));
@@ -37372,6 +37424,7 @@ int do_ddr_auto_fastboot_check(cmd_tbl_t *cmdtp, int flag, int argc, char * cons
 				sprintf(str,"ddr_fast_boot 1 ");
 				printf("\nstr=%s\n",str);
 				run_command(str,0);
+				run_command("reset",0);
 			}
 			else
 			{
@@ -37395,7 +37448,7 @@ int do_ddr_auto_fastboot_check(cmd_tbl_t *cmdtp, int flag, int argc, char * cons
 					printf("\nstr=%s\n",str);
 					run_command(str,0);
 				}
-
+				run_command("reset",0);
 			}
 			return 1;
 		}

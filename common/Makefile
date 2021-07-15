@@ -60,7 +60,7 @@ obj-$(CONFIG_STORE_COMPATIBLE) += env_mmc.o env_storage.o
 ifdef CONFIG_ENV_IS_IN_NAND
 obj-y += env_nand.o
 else
-obj-y += env_amlnand.o
+#obj-y += env_amlnand.o
 endif
 endif
 obj-$(CONFIG_ENV_IS_IN_NVRAM) += env_nvram.o

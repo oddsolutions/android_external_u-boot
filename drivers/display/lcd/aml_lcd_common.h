@@ -31,9 +31,8 @@
 /* 20190308: add more panel clk_ss_level step for tl1*/
 /* 20190911: add lcd_tcon_load_data for tl1*/
 /* 20191025: tcon chpi phy setting update*/
-/* 20191115: add lcd_tcon_load_data chk_data for tl1*/
 
-#define LCD_DRV_VERSION    "20191115"
+#define LCD_DRV_VERSION    "20191025"
 
 #define LCD_STATUS_IF_ON      (1 << 0)
 #define LCD_STATUS_ENCL_ON    (1 << 1)
@@ -72,7 +71,7 @@ extern void lcd_tcon_info_print(void);
 extern int lcd_tcon_enable(struct lcd_config_s *pconf);
 extern void lcd_tcon_disable(void);
 extern int lcd_tcon_probe(char *dt_addr, struct aml_lcd_drv_s *lcd_drv, int load_id);
-extern int lcd_tcon_data_probe(void);
+extern int lcd_tcon_data_load(int *vac_valid, int *demura_valid);
 
 /* lcd gpio */
 extern int aml_lcd_gpio_name_map_num(const char *name);

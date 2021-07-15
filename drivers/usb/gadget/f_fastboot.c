@@ -32,7 +32,6 @@
 #endif
 #include <partition_table.h>
 #include <android_image.h>
-#include <android_vab.h>
 #include <image.h>
 #ifdef CONFIG_AML_ANTIROLLBACK
 #include <anti-rollback.h>
@@ -60,13 +59,6 @@ DECLARE_GLOBAL_DATA_PTR;
 #define FB_HERE()    printf("f(%s)L%d\n", __func__, __LINE__)
 
 extern void f_dwc_otg_pullup(int is_on);
-
-extern int store_read_ops(
-    unsigned char *partition_name,
-    unsigned char * buf, uint64_t off, uint64_t size);
-extern int store_write_ops(
-    unsigned char *partition_name,
-    unsigned char * buf, uint64_t off, uint64_t size);
 
 #ifdef CONFIG_BOOTLOADER_CONTROL_BLOCK
 extern int is_partition_logical(char* parition_name);
@@ -464,100 +456,30 @@ static int strcmp_l1(const char *s1, const char *s2)
 	return strncmp(s1, s2, strlen(s1));
 }
 
-int get_mergestatus(struct misc_virtual_ab_message *message)
-{
-	char *partition = "misc";
-	char vab_buf[1024] = {0};
-
-	if (store_read_ops((unsigned char *)partition,
-		(unsigned char *)vab_buf, SYSTEM_SPACE_OFFSET_IN_MISC, 1024) < 0) {
-		printf("failed to store read %s.\n", partition);
-		return -1;
-	}
-
-	run_command("get_valid_slot", 0);
-	int current_slot = 0;
-	char *slot;
-	slot = getenv("slot-suffixes");
-	if (strcmp(slot, "0") == 0) {
-		current_slot = 0;
-	} else if (strcmp(slot, "1") == 0) {
-		current_slot = 1;
-	}
-
-	memcpy(message, vab_buf, sizeof(struct misc_virtual_ab_message));
-	printf("message.merge_status: %d\n", message->merge_status);
-	printf("message.source_slot: %d\n", message->source_slot);
-	if (message->merge_status == SNAPSHOTTED && current_slot == message->source_slot) {
-		message->merge_status = NONE;
-		printf("set message.merge_status NONE\n");
-	}
-	return 0;
-}
-
-int set_mergestatus_cancel(struct misc_virtual_ab_message *message)
-{
-	char *partition = "misc";
-	char vab_buf[1024] = {0};
-
-	if (store_read_ops((unsigned char *)partition,
-		(unsigned char *)vab_buf, SYSTEM_SPACE_OFFSET_IN_MISC, 1024) < 0) {
-		printf("failed to store read %s.\n", partition);
-		return -1;
-	}
-
-	memcpy(message, vab_buf, sizeof(struct misc_virtual_ab_message));
-	printf("message.merge_status: %d\n", message->merge_status);
-	if (message->merge_status == SNAPSHOTTED || message->merge_status == MERGING) {
-		message->merge_status = CANCELLED;
-		printf("set message.merge_status CANCELLED\n");
-	}
-	store_write_ops((unsigned char *)partition, (unsigned char *)vab_buf, SYSTEM_SPACE_OFFSET_IN_MISC, 1024);
-	return 0;
-}
-
 void dump_lock_info(LockData_t* info)
 {
-#if 0
 	printf("info->version_major = %d\n", info->version_major);
 	printf("info->version_minor = %d\n", info->version_minor);
 	printf("info->unlock_ability = %d\n", info->unlock_ability);
 	printf("info->lock_state = %d\n", info->lock_state);
 	printf("info->lock_critical_state = %d\n", info->lock_critical_state);
 	printf("info->lock_bootloader = %d\n", info->lock_bootloader);
-#endif
 }
 
 
-static int check_lock(void)
+static int is_locked(void)
 {
-	char *lock_s;
 	LockData_t* info;
-
-	lock_s = getenv("lock");
-	if (!lock_s) {
-		printf("lock state is NULL \n");
-		lock_s = "10101000";
-		setenv("lock", "10101000");
-		run_command("defenv_reserv; saveenv;", 0);
-	}
-	printf("lock state: %s\n", lock_s);
-
 	info = malloc(sizeof(struct LockData));
 	if (info) {
-		memset(info,0,LOCK_DATA_SIZE);
-		info->version_major = (int)(lock_s[0] - '0');
-		info->version_minor = (int)(lock_s[1] - '0');
-		info->unlock_ability = (int)(lock_s[2] - '0');
-		info->lock_state = (int)(lock_s[4] - '0');
-		info->lock_critical_state = (int)(lock_s[5] - '0');
-		info->lock_bootloader = (int)(lock_s[6] - '0');
+		get_lock_data(info);
+		dump_lock_info(info);
+	} else {
+		error("malloc error, unable to get lock status\n");
+		return 1;  // default to locked
+	}
 
-		//dump_lock_info(info);
-	} else
-		return 0;
-
-	if ((info->lock_state == 1 ) || ( info->lock_critical_state == 1 )) {
+	if (info->lock_state == 1) {
 		free (info);
 		return 1;
 	}
@@ -588,28 +510,13 @@ static const char* getvar_list_dynamic[] = {
 	"partition-size:super", "partition-size:data", "version",
 };
 
-static const char* getvar_list_dynamic_ab[] = {
-	"hw-revision", "battery-voltage", "is-userspace", "is-logical:data",
-	"is-logical:metadata_a", "is-logical:metadata_b", "is-logical:misc", "is-logical:super",
-	"is-logical:boot_a", "is-logical:boot_b", "is-logical:system_a", "is-logical:system_b",
-	"is-logical:vendor_a", "is-logical:vendor_b", "is-logical:product_a", "is-logical:product_b",
-	"is-logical:odm_a", "is-logical:odm_b",
-	"slot-count", "max-download-size", "serialno", "product", "unlocked", "has-slot:data",
-	"has-slot:metadata", "has-slot:misc", "has-slot:super", "has-slot:boot",
-	"has-slot:system", "has-slot:vendor", "has-slot:product", "has-slot:odm", "current-slot",
-	"secure", "super-partition-name", "version-baseband", "version-bootloader",
-	"partition-size:super", "partition-size:metadata_a", "partition-size:metadata_b",
-	"partition-size:boot_a", "partition-size:boot_b", "partition-size:misc",
-	"partition-size:data", "version",
-};
-
-
 static const char* getvar_list_ab[] = {
 	"version-baseband", "version-bootloader", "version", "hw-revision", "max-download-size",
 	"serialno", "product", "off-mode-charge", "variant", "battery-soc-ok",
-	"battery-voltage", "partition-type:boot_a", "partition-size:boot_a",
-	"partition-type:system_a", "partition-size:system_a", "partition-type:vendor_a", "partition-size:vendor_a",
-	"partition-type:odm_a", "partition-size:odm_a", "partition-type:data", "partition-size:data",
+	"battery-voltage", "partition-type:boot", "partition-size:boot",
+	"partition-type:system", "partition-size:system", "partition-type:vendor", "partition-size:vendor",
+	"partition-type:odm", "partition-size:odm", "partition-type:data", "partition-size:data",
+	"partition-type:cache", "partition-size:cache",
 	"erase-block-size", "logical-block-size", "secure", "unlocked",
 	"slot-count", "slot-suffixes","current-slot", "has-slot:bootloader", "has-slot:boot",
 	"has-slot:system", "has-slot:vendor", "has-slot:odm", "has-slot:vbmeta",
@@ -647,10 +554,7 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 	if (!strncmp(cmd, "all", 3)) {
 		static int cmdIndex = 0;
 		int getvar_num = 0;
-		if (dynamic_partition && has_boot_slot == 1 && strlen(getvar_list_dynamic_ab[cmdIndex]) < 64) {
-			strcpy(cmd, getvar_list_dynamic_ab[cmdIndex]);
-			getvar_num = (sizeof(getvar_list_dynamic_ab) / sizeof(getvar_list_dynamic_ab[0]));
-		} else if (has_boot_slot == 1 && strlen(getvar_list_ab[cmdIndex]) < 64) {
+		if (has_boot_slot == 1 && strlen(getvar_list_ab[cmdIndex]) < 64) {
 			strcpy(cmd, getvar_list_ab[cmdIndex]);
 			getvar_num = (sizeof(getvar_list_ab) / sizeof(getvar_list_ab[0]));
 		} else if (dynamic_partition && strlen(getvar_list_dynamic[cmdIndex]) < 64) {
@@ -761,7 +665,7 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 	} else if (!strcmp_l1("slot-suffixes", cmd)) {
 		s2 = getenv("slot-suffixes");
 		printf("slot-suffixes: %s\n", s2);
-		if (!strcmp(s2, "-1") == 0)
+		if (s2)
 			strncat(response, s2, chars_left);
 		else
 			strncat(response, "0", chars_left);
@@ -781,18 +685,6 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 	} else if (!strcmp_l1("has-slot:boot", cmd)) {
 		if (has_boot_slot == 1) {
 			printf("has boot slot\n");
-			strncat(response, "yes", chars_left);
-		} else
-			strncat(response, "no", chars_left);
-	} else if (!strcmp_l1("has-slot:vendor_boot", cmd)) {
-		if (has_boot_slot == 1) {
-			printf("has vendor_boot slot\n");
-			strncat(response, "yes", chars_left);
-		} else
-			strncat(response, "no", chars_left);
-	} else if (!strcmp_l1("has-slot:recovery", cmd)) {
-		if (has_boot_slot == 1) {
-			printf("has recovery slot\n");
 			strncat(response, "yes", chars_left);
 		} else
 			strncat(response, "no", chars_left);
@@ -817,11 +709,15 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 				strncat(response, "no", chars_left);
 		}
 	} else if (!strcmp_l1("has-slot:vbmeta", cmd)) {
-		if (has_boot_slot == 1) {
-			printf("has vbmeta slot\n");
-			strncat(response, "yes", chars_left);
-		} else
+		if (dynamic_partition) {
 			strncat(response, "no", chars_left);
+		} else {
+			if (has_boot_slot == 1) {
+				printf("has vbmeta slot\n");
+				strncat(response, "yes", chars_left);
+			} else
+				strncat(response, "no", chars_left);
+		}
 	} else if (!strcmp_l1("has-slot:product", cmd)) {
 		if (dynamic_partition) {
 			strncat(response, "no", chars_left);
@@ -843,7 +739,11 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 				strncat(response, "no", chars_left);
 		}
 	} else if (!strcmp_l1("has-slot:metadata", cmd)) {
-		strncat(response, "no", chars_left);
+		if (has_boot_slot == 1) {
+			printf("has metadata slot\n");
+			strncat(response, "yes", chars_left);
+		} else
+			strncat(response, "no", chars_left);
 	} else if (!strcmp_l1("has-slot:dtbo", cmd)) {
 		if (has_boot_slot == 1) {
 			printf("has dtbo slot\n");
@@ -853,10 +753,6 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 	} else if (!strcmp_l1("has-slot:data", cmd)) {
 		strncat(response, "no", chars_left);
 	} else if (!strcmp_l1("has-slot:misc", cmd)) {
-		strncat(response, "no", chars_left);
-	} else if (!strcmp_l1("has-slot:env", cmd)) {
-		strncat(response, "no", chars_left);
-	} else if (!strcmp_l1("has-slot:factory", cmd)) {
 		strncat(response, "no", chars_left);
 	} else if (!strcmp_l1("has-slot:odm", cmd)) {
 		if (has_boot_slot == 1) {
@@ -874,7 +770,6 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 			strcpy(cmd, "data");
 			printf("partition is %s\n", cmd);
 		}
-
 		if (!strncmp("mbr", cmd, strlen("mbr"))) {
 			strcpy(response, "FAILVariable not implemented");
 		} else {
@@ -930,32 +825,16 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 		!strcmp_l1("logical-block-size", cmd)) {
 		strncat(response, "2000", chars_left);
 	} else if (!strcmp_l1("secure", cmd)) {
-		if (check_lock()) {
+		if (is_locked()) {
 			strncat(response, "yes", chars_left);
 		} else {
 			strncat(response, "no", chars_left);
 		}
 	} else if (!strcmp_l1("unlocked", cmd)) {
-		if (check_lock()) {
+		if (is_locked()) {
 			strncat(response, "no", chars_left);
 		} else {
 			strncat(response, "yes", chars_left);
-		}
-	} else if (!strcmp_l1("snapshot-update-status", cmd)) {
-		if (has_boot_slot == 1) {
-			struct misc_virtual_ab_message message;
-			get_mergestatus(&message);
-			switch (message.merge_status) {
-				case SNAPSHOTTED:
-					strncat(response, "snapshotted", chars_left);
-					break;
-				case MERGING:
-					strncat(response, "merging", chars_left);
-					break;
-				default:
-					strncat(response, "none", chars_left);
-					break;
-			}
 		}
 	} else if (!strcmp_l1("slot-successful", cmd)) {
 		char str[128];
@@ -1178,25 +1057,7 @@ static void cb_flashing(struct usb_ep *ep, struct usb_request *req)
 {
 	char *cmd;
 	char* response = response_str;
-	char* lock_s;
 	LockData_t* info;
-	size_t chars_left;
-	char lock_d[LOCK_DATA_SIZE];
-
-	lock_s = getenv("lock");
-	if (!lock_s) {
-		printf("lock state is NULL \n");
-		strcpy(lock_d, "10101000");
-		lock_s = "10101000";
-		setenv("lock", "10101000");
-		run_command("defenv_reserv; saveenv;", 0);
-	} else {
-		printf("lock state: %s\n", lock_s);
-		if (strlen(lock_s) > 15)
-			strncpy(lock_d, lock_s, 15);
-		else
-			strncpy(lock_d, lock_s, strlen(lock_s));
-	}
 
 	info = malloc(sizeof(struct LockData));
 	if (!info) {
@@ -1204,17 +1065,10 @@ static void cb_flashing(struct usb_ep *ep, struct usb_request *req)
 		fastboot_tx_write_str("FAILmalloc error");
 		return;
 	}
-	memset(info,0,LOCK_DATA_SIZE);
-	info->version_major = (int)(lock_d[0] - '0');
-	info->version_minor = (int)(lock_d[1] - '0');
-	info->unlock_ability = (int)(lock_d[2] - '0');
-	info->lock_state = (int)(lock_d[4] - '0');
-	info->lock_critical_state = (int)(lock_d[5] - '0');
-	info->lock_bootloader = (int)(lock_d[6] - '0');
+	get_lock_data(info);
 	dump_lock_info(info);
 
 	strcpy(response, "OKAY");
-	chars_left = sizeof(response_str) - strlen(response) - 1;
 	cmd = strchr(req->buf, ' ');
 	if (!cmd) {
 		error("missing variable\n");
@@ -1240,15 +1094,8 @@ static void cb_flashing(struct usb_ep *ep, struct usb_request *req)
 			fastboot_busy(str);
 			is_unlock_ability_sent = true;
 		}
-	} else if (!strcmp_l1("get_unlock_bootloader_nonce", cmd)) {
-		char str_num[8];
-		sprintf(str_num, "%d", info->lock_critical_state);
-		strncat(response, str_num, chars_left);
-	} else if (!strcmp_l1("unlock_bootloader", cmd)) {
-		strncat(response, "please run flashing unlock & flashing unlock_critical before write", chars_left);
-	} else if (!strcmp_l1("lock_bootloader", cmd)) {
-		info->lock_bootloader = 1;
 	} else if (!strcmp_l1("unlock", cmd)) {
+		if (info->unlock_ability == 1 ) {
 			if (info->lock_state == 1 ) {
 				char *avb_s;
 				avb_s = getenv("avb2");
@@ -1262,19 +1109,20 @@ static void cb_flashing(struct usb_ep *ep, struct usb_request *req)
 					if (avb_unlock()) {
 						printf("unlocking device.  Erasing userdata partition!\n");
 						run_command("store erase partition data", 0);
-						run_command("store erase partition metadata", 0);
 					} else {
 						printf("unlock failed!\n");
 					}
 #else
 					printf("unlocking device.  Erasing userdata partition!\n");
 					run_command("store erase partition data", 0);
-					run_command("store erase partition metadata", 0);
 #endif
 				}
 			}
 			info->lock_state = 0;
-			info->lock_critical_state = 0;
+		} else {
+			printf("unlock_ability is 0, can not unlock, please set it in android setting\n");
+			strcpy(response, "FAILflashing unlock is not allowed");
+		}
 	} else if (!strcmp_l1("lock", cmd)) {
 		if (info->lock_state == 0 ) {
 			char *avb_s;
@@ -1291,12 +1139,10 @@ static void cb_flashing(struct usb_ep *ep, struct usb_request *req)
 				} else {
 					printf("locking device.  Erasing userdata partition!\n");
 					run_command("store erase partition data", 0);
-					run_command("store erase partition metadata", 0);
 				}
 #else
 				printf("locking device.  Erasing userdata partition!\n");
 				run_command("store erase partition data", 0);
-				run_command("store erase partition metadata", 0);
 #endif
 			}
 		}
@@ -1307,10 +1153,7 @@ static void cb_flashing(struct usb_ep *ep, struct usb_request *req)
 	}
 
 	dump_lock_info(info);
-	sprintf(lock_d, "%d%d%d0%d%d%d0", info->version_major, info->version_minor, info->unlock_ability, info->lock_state, info->lock_critical_state, info->lock_bootloader);
-	printf("lock_d state: %s\n", lock_d);
-	setenv("lock", lock_d);
-	run_command("defenv_reserv; saveenv;", 0);
+	save_lock_data(info);
 	printf("response: %s\n", response);
 	free(info);
 	fastboot_tx_write_str(response);
@@ -1329,12 +1172,6 @@ static void cb_flash(struct usb_ep *ep, struct usb_request *req)
 	if (!cmd) {
 		error("missing partition name\n");
 		fastboot_tx_write_str("FAILmissing partition name");
-		return;
-	}
-
-	if (check_lock()) {
-		error("device is locked, can not run this cmd.Please flashing unlock & flashing unlock_critical\n");
-		fastboot_tx_write_str("FAILlocked device");
 		return;
 	}
 
@@ -1395,19 +1232,6 @@ static void cb_set_active(struct usb_ep *ep, struct usb_request *req)
 		return;
 	}
 
-	if (check_lock()) {
-		error("device is locked, can not run this cmd.Please flashing unlock & flashing unlock_critical\n");
-		fastboot_tx_write_str("FAILlocked device");
-		return;
-	}
-
-	struct misc_virtual_ab_message message;
-	get_mergestatus(&message);
-	if (message.merge_status == MERGING) {
-		fastboot_tx_write_str("FAILin merge state, cannot set active");
-		return;
-	}
-
 	sprintf(str, "set_active_slot %s", cmd);
 	printf("command:    %s\n", str);
 	ret = run_command(str, 0);
@@ -1416,39 +1240,6 @@ static void cb_set_active(struct usb_ep *ep, struct usb_request *req)
 		fastboot_tx_write_str("OKAY");
 	else
 		fastboot_tx_write_str("FAILset slot error");
-}
-
-static void cb_flashall(struct usb_ep *ep, struct usb_request *req)
-{
-	char* response = response_str;
-	char *cmd = req->buf;
-
-	printf("cmd cb_flashall is %s\n", cmd);
-
-	if (check_lock()) {
-		error("device is locked, can not run this cmd.Please flashing unlock & flashing unlock_critical\n");
-		fastboot_tx_write_str("FAILlocked device");
-		return;
-	}
-
-	//strcpy(response, "FAILno flash device defined");
-	if (is_mainstorage_emmc()) {
-#ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
-		fb_mmc_flash_write(cmd, (void *)CONFIG_USB_FASTBOOT_BUF_ADDR,
-				   download_bytes);
-#endif
-	} else if (is_mainstorage_nand()) {
-#ifdef CONFIG_FASTBOOT_FLASH_NAND_DEV
-		fb_nand_flash_write(cmd, (void *)CONFIG_USB_FASTBOOT_BUF_ADDR,
-					download_bytes);
-#else
-		fastboot_fail("not support nftl\n");
-#endif
-	} else {
-		printf("error: no valid fastboot device\n");
-		fastboot_fail("no vaild device\n");
-	}
-	fastboot_tx_write_str(response);
 }
 
 static void cb_erase(struct usb_ep *ep, struct usb_request *req)
@@ -1465,24 +1256,10 @@ static void cb_erase(struct usb_ep *ep, struct usb_request *req)
 		return;
 	}
 
-	if (check_lock()) {
-		error("device is locked, can not run this cmd.Please flashing unlock & flashing unlock_critical\n");
-		fastboot_tx_write_str("FAILlocked device");
-		return;
-	}
-
-	struct misc_virtual_ab_message message;
-	get_mergestatus(&message);
-
 	printf("partition is %s\n", cmd);
-
 	if (strcmp(cmd, "userdata") == 0) {
 		strcpy(cmd, "data");
 		printf("partition is %s\n", cmd);
-		if (message.merge_status == SNAPSHOTTED || message.merge_status == MERGING) {
-			fastboot_tx_write_str("FAILin merge state, cannot erase");
-			return;
-		}
 	}
 
 	if (strcmp(cmd, "dts") == 0) {
@@ -1508,71 +1285,14 @@ static void cb_erase(struct usb_ep *ep, struct usb_request *req)
 	fastboot_tx_write_str(response);
 }
 
-static void cb_devices(struct usb_ep *ep, struct usb_request *req)
+static void cb_require_unlock(struct usb_ep *ep, struct usb_request *req)
 {
-	char response[RESPONSE_LEN];
-	char *cmd = req->buf;
-
-	printf("cmd is %s\n", cmd);
-
-	strcpy(response, "AMLOGIC");
-
-	fastboot_tx_write_str(response);
-}
-
-static void cb_snapshot_update_cmd(struct usb_ep *ep, struct usb_request *req)
-{
-	char *cmd;
-
-	cmd = req->buf;
-	strsep(&cmd, ":");
-	printf("snapshot-update: %s\n", cmd);
-	if (!cmd) {
-		error("missing variable\n");
-		fastboot_tx_write_str("FAILmissing var");
-		return;
-	}
-
-	if (check_lock()) {
-		error("device is locked, can not run this cmd.Please flashing unlock & flashing unlock_critical\n");
-		fastboot_tx_write_str("FAILlocked device");
-		return;
-	}
-
-	if (!strcmp_l1("cancel", cmd)) {
-		struct misc_virtual_ab_message message;
-		set_mergestatus_cancel(&message);
-	}
-	fastboot_tx_write_str("OKAY");
-}
-
-static void cb_oem_cmd(struct usb_ep *ep, struct usb_request *req)
-{
-	char* cmd = req->buf;
-	int i = 0, len = 0, j = 0;
-	char cmd_str[RESPONSE_LEN];
-	printf("oem cmd[%s]\n", cmd);
-
-	strsep(&cmd, " ");
-	printf("To run cmd[%s]\n", cmd);
-
-	len = strlen(cmd);
-	for (i = 0, j = 0; i < len; i++) {
-		if (cmd[i]!='\'') {
-			cmd_str[j++] = cmd[i];
-		}
-	}
-	cmd_str[j] = '\0';
-	printf("cmd_str2: %s\n", cmd_str);
-
-	run_command(cmd_str, 0);
-
-	fastboot_tx_write_str("OKAY");
-	return;
+	fastboot_tx_write_str("FAILNot allowed on locked devices");
 }
 
 struct cmd_dispatch_info {
 	char *cmd;
+	bool require_unlock;
 	void (*cb)(struct usb_ep *ep, struct usb_request *req);
 };
 
@@ -1580,64 +1300,55 @@ static const struct cmd_dispatch_info cmd_dispatch_info[] = {
 	{
 		.cmd = "reboot",
 		.cb = cb_reboot,
+		.require_unlock = false,
 	}, {
 		.cmd = "getvar:",
 		.cb = cb_getvar,
+		.require_unlock = false,
 	}, {
 		.cmd = "download:",
 		.cb = cb_download,
+		.require_unlock = true,
 	}, {
 		.cmd = "boot",
 		.cb = cb_boot,
+		.require_unlock = true,
 	}, {
 		.cmd = "continue",
 		.cb = cb_continue,
+		.require_unlock = false,
 	}, {
 		.cmd = "flashing",
 		.cb = cb_flashing,
+		.require_unlock = false,
 	},
 #ifdef CONFIG_FASTBOOT_FLASH
 	{
 		.cmd = "flash",
 		.cb = cb_flash,
+		.require_unlock = true,
 	},
 #endif
 	{
-		.cmd = "update",
-		.cb = cb_download,
-	},
-	{
-		.cmd = "flashall",
-		.cb = cb_flashall,
-	},
-	{
 		.cmd = "erase",
 		.cb = cb_erase,
-	},
-	{
-		.cmd = "devices",
-		.cb = cb_devices,
+		.require_unlock = true,
 	},
 	{
 		.cmd = "reboot-bootloader",
 		.cb = cb_reboot,
+		.require_unlock = false,
 	},
 	{
 		.cmd = "reboot-fastboot",
 		.cb = cb_reboot,
+		.require_unlock = false,
 	},
 	{
 		.cmd = "set_active",
 		.cb = cb_set_active,
+		.require_unlock = true,
 	},
-	{
-		.cmd = "oem",
-		.cb  = cb_oem_cmd,
-	},
-	{
-		.cmd = "snapshot-update",
-		.cb  = cb_snapshot_update_cmd,
-	}
 };
 
 //cb for out_req->complete
@@ -1649,7 +1360,12 @@ static void rx_handler_command(struct usb_ep *ep, struct usb_request *req)
 
 	for (i = 0; i < ARRAY_SIZE(cmd_dispatch_info); i++) {
 		if (!strcmp_l1(cmd_dispatch_info[i].cmd, cmdbuf)) {
-			func_cb = cmd_dispatch_info[i].cb;
+			printf("command: %s\n", cmdbuf);
+			if (cmd_dispatch_info[i].require_unlock && is_locked()) {
+				func_cb = cb_require_unlock;
+			} else {
+				func_cb = cmd_dispatch_info[i].cb;
+			}
 			break;
 		}
 	}

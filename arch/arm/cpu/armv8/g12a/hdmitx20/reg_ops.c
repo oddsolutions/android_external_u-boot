@@ -80,12 +80,9 @@ unsigned int hdmitx_rd_reg(unsigned int addr)
 		small_offset = small_offset << 2;
 	}
 	data = hd_read_reg(large_offset + small_offset);
-	if (dbg_en) {
-		if (large_offset == HDMITX_DWC_BASE_OFFSET)
-			pr_info("%s rd[0x%x] 0x%x\n", "DWC", addr, data);
-		else
-			pr_info("%s rd[0x%x] 0x%x\n", "TOP", addr, data);
-	}
+	if (dbg_en)
+		pr_info("%s wr[0x%x] 0x%x\n", large_offset ? "DWC" : "TOP",
+			addr, data);
 	return data;
 }
 
@@ -102,12 +99,9 @@ void hdmitx_wr_reg(unsigned int addr, unsigned int data)
 	}
 	hd_write_reg(large_offset + small_offset, data);
 
-	if (dbg_en) {
-		if (large_offset == HDMITX_DWC_BASE_OFFSET)
-			pr_info("%s wr[0x%x] 0x%x\n", "DWC", addr, data);
-		else
-			pr_info("%s wr[0x%x] 0x%x\n", "TOP", addr, data);
-	}
+	if (dbg_en)
+		pr_info("%s wr[0x%x] 0x%x\n", large_offset ? "DWC" : "TOP",
+			addr, data);
 }
 
 void hdmitx_set_reg_bits(unsigned int addr, unsigned int value,

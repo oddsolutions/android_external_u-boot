@@ -1576,3 +1576,68 @@ _out:
 	   return ret;
 }
 
+int get_lock_data(struct LockData *lock_data)
+{
+	if (!lock_data) {
+		return -EINVAL;
+	}
+
+	char* lock_s;
+	lock_s = getenv("lock");
+	if (lock_s != NULL && strlen(lock_s) == 8) {
+		lock_data->version_major       = lock_s[0] - '0';
+		lock_data->version_minor       = lock_s[1] - '0';
+		lock_data->unlock_ability      = lock_s[2] - '0';
+		lock_data->reserved1           = lock_s[3] - '0';
+		lock_data->lock_state          = lock_s[4] - '0';
+		lock_data->lock_critical_state = lock_s[5] - '0';
+		lock_data->lock_bootloader     = lock_s[6] - '0';
+		lock_data->reserved2           = lock_s[7] - '0';
+	} else {
+		printf("lock state is broken, use the default value\n");
+		lock_data->version_major       = LOCK_MAJOR_VERSION;
+		lock_data->version_minor       = LOCK_MINOR_VERSION;
+		lock_data->unlock_ability      = 0;
+		lock_data->reserved1           = 0;
+		lock_data->lock_state          = 1;
+		lock_data->lock_critical_state = 1;
+		lock_data->lock_bootloader     = 1;
+		lock_data->reserved2           = 0;
+		save_lock_data(lock_data);
+	}
+
+	return 0;
+}
+
+int save_lock_data(const struct LockData *lock_data)
+{
+	if (!lock_data) {
+		return -EINVAL;
+	}
+
+	if (lock_data->version_major > 9
+	    || lock_data->version_minor > 9
+	    || lock_data->unlock_ability > 9
+	    || lock_data->reserved1 > 9
+	    || lock_data->lock_state > 9
+	    || lock_data->lock_critical_state > 9
+	    || lock_data->lock_bootloader > 9
+	    || lock_data->reserved2 > 9) {
+		printf("lock data is illegal\n");
+		return -EINVAL;
+	}
+
+	char lock_s[LOCK_DATA_SIZE];
+	sprintf(lock_s, "%1d%1d%1d%1d%1d%1d%1d%1d",
+		lock_data->version_major,
+		lock_data->version_minor,
+		lock_data->unlock_ability,
+		lock_data->reserved1,
+		lock_data->lock_state,
+		lock_data->lock_critical_state,
+		lock_data->lock_bootloader,
+		lock_data->reserved2);
+	setenv("lock", lock_s);
+	run_command("defenv_reserv; saveenv;", 0);
+	return 0;
+}

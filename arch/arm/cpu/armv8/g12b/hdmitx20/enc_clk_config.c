@@ -891,7 +891,6 @@ void hdmitx_set_clk_(struct hdmitx_dev *hdev)
 	enum hdmi_vic vic = hdev->vic;
 	enum hdmi_color_format cs = hdev->para->cs;
 	enum hdmi_color_depth cd = hdev->para->cd;
-	char *sspll_dis = NULL;
 
 	/* YUV 422 always use 24B mode */
 	if (cs == HDMI_COLOR_FORMAT_422)
@@ -950,9 +949,7 @@ void hdmitx_set_clk_(struct hdmitx_dev *hdev)
 next:
 	set_hdmitx_sys_clk();
 	set_hpll_clk_out(p_enc[j].hpll_clk_out, hdev);
-	sspll_dis = getenv("sspll_dis");
-	if ((!sspll_dis || !strcmp(sspll_dis, "0")) &&
-		(cd == HDMI_COLOR_DEPTH_24B))
+	if (!getenv("sspll_dis"))
 		set_hpll_sspll(hdev);
 	set_hpll_od1(p_enc[j].od1);
 	set_hpll_od2(p_enc[j].od2);

@@ -754,10 +754,10 @@ static u32 line_stride_calc(
 void osd_setting_default_hwc(u32 index, struct pandata_s *disp_data)
 {
 	u32 width, height;
-	u32 blend2_premult_en = 3, din_premult_en = 0;
-	u32 blend_din_en = 0x5;
+	u32 blend2_premult_en = 0, din_premult_en = 0;
+	u32 blend_din_en = 0x1;
 	/* blend_din0 input to blend0 */
-	u32 din0_byp_blend = 0;
+	u32 din0_byp_blend = 1;
 	/* blend1_dout to blend2 */
 	u32 din2_osd_sel = 0;
 	/* blend1_din3 input to blend1 */
@@ -766,12 +766,11 @@ void osd_setting_default_hwc(u32 index, struct pandata_s *disp_data)
 	u32 postbld_src3_sel = 3, postbld_src4_sel = 0;
 	u32 postbld_osd1_premult = 0, postbld_osd2_premult = 0;
 	u32 reg_offset = 2;
-	u32 shift_line = osd_hw.shift_line;
 
 	if (index == OSD1)
-		din_reoder_sel = 0x4441;
+		din_reoder_sel = 1;
 	else if (index == OSD2)
-		din_reoder_sel = 0x4442;
+		din_reoder_sel = 2;
 	/* depend on din0_premult_en */
 	postbld_osd1_premult = 0;
 	/* depend on din_premult_en bit 4 */
@@ -814,7 +813,7 @@ void osd_setting_default_hwc(u32 index, struct pandata_s *disp_data)
 		0x0);
 
 	width = disp_data->x_end - disp_data->x_start + 1;
-	height = disp_data->y_end - disp_data->y_start + 1 + shift_line;
+	height = disp_data->y_end - disp_data->y_start + 1;
 	/* it is setting for osdx */
 	osd_reg_write(
 		VIU_OSD_BLEND_DIN0_SCOPE_H + reg_offset * index,
@@ -822,27 +821,8 @@ void osd_setting_default_hwc(u32 index, struct pandata_s *disp_data)
 		disp_data->x_start);
 	osd_reg_write(
 		VIU_OSD_BLEND_DIN0_SCOPE_V + reg_offset * index,
-		(disp_data->y_end + shift_line) << 16 |
-		(disp_data->y_start + shift_line));
-	if (index == OSD1) {
-		int i;
-
-		for (i = 1; i < 4; i++)
-			osd_reg_write(
-				VIU_OSD_BLEND_DIN0_SCOPE_V + reg_offset * i,
-				0xffffffff);
-	} else if (index == OSD2) {
-		int i = 0;
-
-		osd_reg_write(
-			VIU_OSD_BLEND_DIN0_SCOPE_V + reg_offset * i,
-			0xffffffff);
-		for (i = 2; i < 4; i++)
-			osd_reg_write(
-				VIU_OSD_BLEND_DIN0_SCOPE_V + reg_offset * i,
-				0xffffffff);
-	}
-
+		disp_data->y_end << 16 |
+		disp_data->y_start);
 	osd_reg_write(VIU_OSD_BLEND_BLEND0_SIZE,
 		height << 16 |
 		width);
@@ -1696,7 +1676,6 @@ static void osd1_update_disp_freescale_enable(void)
 	int hf_bank_len = 4;
 	int vf_bank_len = 0;
 	u32 data32 = 0x0;
-	u32 shift_line = osd_hw.shift_line;
 
 	osd_logi("osd1_update_disp_freescale_enable\n");
 	if (osd_hw.scale_workaround)
@@ -1756,12 +1735,9 @@ static void osd1_update_disp_freescale_enable(void)
 		bot_ini_phase = 0;
 	vf_phase_step = (vf_phase_step << 4);
 	/* config osd scaler in/out hv size */
-	if (shift_line)
-		vsc_ini_rcv_num++;
-
 	data32 = 0x0;
 	if (osd_hw.free_scale_enable[OSD1]) {
-		data32 = (((src_h - 1 + shift_line) & 0x1fff)
+		data32 = (((src_h - 1) & 0x1fff)
 			  | ((src_w - 1) & 0x1fff) << 16);
 		VSYNCOSD_WR_MPEG_REG(VPP_OSD_SCI_WH_M1, data32);
 		data32 = ((osd_hw.free_dst_data[OSD1].x_end & 0xfff) |
@@ -1861,8 +1837,6 @@ static void osd2_update_disp_freescale_enable(void)
 	int hf_bank_len = 4;
 	int vf_bank_len = 4;
 	u32 data32 = 0x0;
-	u32 shift_line = osd_hw.shift_line;
-
 	if (osd_hw.scale_workaround)
 		vf_bank_len = 2;
 	hsc_ini_rcv_num = hf_bank_len;
@@ -1910,11 +1884,9 @@ static void osd2_update_disp_freescale_enable(void)
 		bot_ini_phase = 0;
 	vf_phase_step = (vf_phase_step << 4);
 	/* config osd scaler in/out hv size */
-	if (shift_line)
-		vsc_ini_rcv_num++;
 	data32 = 0x0;
 	if (osd_hw.free_scale_enable[OSD2]) {
-		data32 = (((src_h - 1 + shift_line) & 0x1fff)
+		data32 = (((src_h - 1) & 0x1fff)
 			  | ((src_w - 1) & 0x1fff) << 16);
 		VSYNCOSD_WR_MPEG_REG(VPP_OSD_SCI_WH_M1, data32);
 		data32 = ((osd_hw.free_dst_data[OSD2].x_end & 0xfff) |
@@ -2171,37 +2143,36 @@ static void osd2_update_enable(void)
 	u32 video_enable = 0;
 
 	if (osd_hw.free_scale_mode[OSD2]) {
-		if (osd_hw.enable[OSD2] == ENABLE)
-			VSYNCOSD_SET_MPEG_REG_MASK(VIU_OSD2_CTRL_STAT,
-						   1 << 0);
-		else
-			VSYNCOSD_CLR_MPEG_REG_MASK(VIU_OSD2_CTRL_STAT,
-						   1 << 0);
-
-		/* for older chips than g12a:
-		 * freescale output always on VPP_OSD1_POSTBLEND
-		 * if freescale is enable, VPP_OSD1_POSTBLEND to control OSD1&OSD2
-		 * if freescale is disable, VPP_OSD2_POSTBLEND to control OSD2
-		 */
-		if (osd_hw.osd_ver <= OSD_NORMAL) {
+		if (osd_hw.enable[OSD2] == ENABLE) {
 			if (osd_hw.free_scale_enable[OSD2]) {
-				if (osd_hw.enable[OSD2] == ENABLE)
-						VSYNCOSD_SET_MPEG_REG_MASK(VPP_MISC,
-									   VPP_OSD1_POSTBLEND
-									   | VPP_POSTBLEND_EN);
-				else
-					if (!osd_hw.enable[OSD1])
-						VSYNCOSD_CLR_MPEG_REG_MASK(VPP_MISC,
-									   VPP_OSD1_POSTBLEND);
+				if (osd_hw.osd_ver <= OSD_NORMAL)
+				VSYNCOSD_SET_MPEG_REG_MASK(VPP_MISC,
+							   VPP_OSD1_POSTBLEND
+							   | VPP_POSTBLEND_EN);
+				VSYNCOSD_SET_MPEG_REG_MASK(VIU_OSD2_CTRL_STAT,
+							   1 << 0);
 			} else {
-				if (osd_hw.enable[OSD2] == ENABLE)
-						VSYNCOSD_SET_MPEG_REG_MASK(VPP_MISC,
-									   VPP_OSD2_POSTBLEND
-									   | VPP_POSTBLEND_EN);
-				else
-						VSYNCOSD_CLR_MPEG_REG_MASK(VPP_MISC,
-									   VPP_OSD2_POSTBLEND);
+				VSYNCOSD_CLR_MPEG_REG_MASK(VIU_OSD2_CTRL_STAT,
+							   1 << 0);
+#ifndef CONFIG_FB_OSD2_CURSOR
+				/*
+				VSYNCOSD_CLR_MPEG_REG_MASK(VPP_MISC,
+						VPP_OSD1_POSTBLEND);
+				*/
+#endif
+				if (osd_hw.osd_ver <= OSD_NORMAL)
+				VSYNCOSD_SET_MPEG_REG_MASK(VPP_MISC,
+							   VPP_OSD2_POSTBLEND
+							   | VPP_POSTBLEND_EN);
 			}
+		} else {
+			if (osd_hw.enable[OSD1] == ENABLE)
+				VSYNCOSD_CLR_MPEG_REG_MASK(VPP_MISC,
+							   VPP_OSD2_POSTBLEND);
+			else
+				VSYNCOSD_CLR_MPEG_REG_MASK(VPP_MISC,
+							   VPP_OSD1_POSTBLEND
+							   | VPP_OSD2_POSTBLEND);
 		}
 	} else if (osd_hw.osd_ver <= OSD_NORMAL){
 		video_enable |= VSYNCOSD_RD_MPEG_REG(VPP_MISC)&VPP_VD1_PREBLEND;
@@ -3097,7 +3068,8 @@ void osd_init_hw(void)
 		osd_hw.free_scale_data[OSD2].y_end = 0;
 		osd_hw.free_scale_mode[OSD1] = 1;
 		osd_hw.free_scale_mode[OSD2] = 1;
-		if ((get_cpu_id().family_id == MESON_CPU_MAJOR_ID_GXM))
+		if ((get_cpu_id().family_id == MESON_CPU_MAJOR_ID_GXM)
+			||(get_cpu_id().family_id == MESON_CPU_MAJOR_ID_TXLX))
 			osd_reg_write(VPP_OSD_SC_DUMMY_DATA, 0x00202000);
 		else if (get_cpu_id().family_id ==
 			MESON_CPU_MAJOR_ID_GXTVBB)
@@ -3109,12 +3081,7 @@ void osd_init_hw(void)
 		osd_hw.free_scale_mode[OSD2] = 0;
 	}
 	memset(osd_hw.rotate, 0, sizeof(struct osd_rotate_s));
-	if ((get_cpu_id().family_id == MESON_CPU_MAJOR_ID_G12A) ||
-		((get_cpu_id().family_id == MESON_CPU_MAJOR_ID_G12B) &&
-		(get_cpu_id().chip_rev == MESON_CPU_CHIP_REVISION_A)))
-		osd_hw.shift_line = 1;
-	else
-		osd_hw.shift_line = 0;
+
 	return;
 }
 
