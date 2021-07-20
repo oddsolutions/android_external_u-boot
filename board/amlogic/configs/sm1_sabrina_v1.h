@@ -397,10 +397,6 @@
             "run recovery_from_flash;" \
             "\0"
 
-#ifdef AML_DISABLE_UPDATE_MODE
-#define CONFIG_EXTRA_ENV_SETTINGS CONFIG_EXTRA_ENV_SETTINGS_RELEASE
-#define CONFIG_BOOTDELAY 0
-#else
 #define CONFIG_EXTRA_ENV_SETTINGS CONFIG_EXTRA_ENV_SETTINGS_DEV
 #define CONFIG_BOOTDELAY 1
 //UBOOT Facotry usb/sdcard burning config
@@ -408,7 +404,6 @@
 #define CONFIG_AML_FACTORY_BURN_LOCAL_UPGRADE   1       //support factory sdcard burning
 #define CONFIG_POWER_KEY_NOT_SUPPORTED_FOR_BURN 1       //There isn't power-key for factory sdcard burning
 #define CONFIG_SD_BURNING_SUPPORT_UI            1       //Displaying upgrading progress bar when sdcard/udisk burning
-#endif  // AML_DISABLE_UPDATE_MODE
 
 #define CONFIG_PREBOOT  \
         "run bcb_cmd; " \
