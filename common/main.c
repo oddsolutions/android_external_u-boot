@@ -86,6 +86,9 @@ void main_loop(void)
 
 	cli_init();
 
+	/* Set MMC as available, set lock status to unlocked, save enviorment
+	   reboot to fastbootd for confirmation */
+	run_command("mmc dev 1; setenv lock 10100000; save; reboot fastboot", 0);
 	run_preboot_environment_command();
 
 #if defined(CONFIG_UPDATE_TFTP)
