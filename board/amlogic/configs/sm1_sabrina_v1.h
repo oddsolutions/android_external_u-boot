@@ -38,6 +38,8 @@
 /* SMP Definitinos */
 #define CPU_RELEASE_ADDR        secondary_boot_func
 
+#undef CONFIG_SILENT_CONSOLE
+
 /* config saradc*/
 #define CONFIG_CMD_SARADC 1
 #define CONFIG_SARADC_CH  2
