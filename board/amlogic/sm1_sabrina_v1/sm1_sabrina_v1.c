@@ -56,7 +56,7 @@
 #include <amlogic/spifc.h>
 #endif
 #ifdef CONFIG_AVB2_KPUB_VENDOR
-#include <generated/avb2_kpub_vendor.h>
+#include <avb2_kpub_vendor.h>
 #endif
 
 DECLARE_GLOBAL_DATA_PTR;
