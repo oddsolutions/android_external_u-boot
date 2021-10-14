@@ -1086,6 +1086,12 @@ static void cb_download(struct usb_ep *ep, struct usb_request *req)
 
 	printf("cmd cb_download is %s\n", cmd);
 
+	if (check_lock()) {
+		error("device is locked, can not run this cmd.Please flashing unlock & flashing unlock_critical\n");
+		fastboot_tx_write_str("FAILlocked device");
+		return;
+	}
+
 	strsep(&cmd, ":");
 	download_size = simple_strtoul(cmd, NULL, 16);
 	download_bytes = 0;
@@ -1154,6 +1160,11 @@ static void do_bootm_on_complete(struct usb_ep *ep, struct usb_request *req)
 
 static void cb_boot(struct usb_ep *ep, struct usb_request *req)
 {
+	if (check_lock()) {
+		error("device is locked, can not run this cmd.Please flashing unlock & flashing unlock_critical\n");
+		fastboot_tx_write_str("FAILlocked device");
+		return;
+	}
 	fastboot_func->in_req->complete = do_bootm_on_complete;
 	fastboot_tx_write_str("OKAY");
 }
@@ -1552,6 +1563,12 @@ static void cb_oem_cmd(struct usb_ep *ep, struct usb_request *req)
 	int i = 0, len = 0, j = 0;
 	char cmd_str[RESPONSE_LEN];
 	printf("oem cmd[%s]\n", cmd);
+
+	if (check_lock()) {
+		error("device is locked, can not run this cmd.Please flashing unlock & flashing unlock_critical\n");
+		fastboot_tx_write_str("FAILlocked device");
+		return;
+	}
 
 	strsep(&cmd, " ");
 	printf("To run cmd[%s]\n", cmd);
