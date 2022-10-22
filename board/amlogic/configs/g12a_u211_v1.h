@@ -1,23 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
  * board/amlogic/configs/g12a_u211_v1.h
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #ifndef __G12A_U211_V1_H__
 #define __G12A_U211_V1_H__
@@ -118,7 +105,7 @@
         "wipe_cache=successful\0"\
         "EnableSelinux=enforcing\0" \
         "recovery_part=recovery\0"\
-        "lock=10101000\0"\
+        "lock=10001000\0"\
         "recovery_offset=0\0"\
         "cvbs_drv=0\0"\
         "osd_reverse=0\0"\
@@ -138,7 +125,7 @@
             "\0"\
         "storeargs="\
             "get_bootloaderversion;" \
-            "setenv bootargs ${initargs} reboot_mode_android=${reboot_mode_android} logo=${display_layer},loaded,${fb_addr} fb_width=${fb_width} fb_height=${fb_height} display_bpp=${display_bpp} outputmode=${outputmode} vout=${outputmode},enable panel_type=${panel_type} lcd_ctrl=${lcd_ctrl} hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} androidboot.selinux=${EnableSelinux} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
+            "setenv bootargs ${initargs} reboot_mode_android=${reboot_mode_android} logo=${display_layer},loaded,${fb_addr} vout=${outputmode},enable panel_type=${panel_type} lcd_ctrl=${lcd_ctrl} hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} androidboot.selinux=${EnableSelinux} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
 	"setenv bootargs ${bootargs} androidboot.hardware=amlogic androidboot.bootloader=${bootloader_version} androidboot.build.expect.baseband=N/A;"\
             "run cmdline_keys;"\
             "\0"\
@@ -249,20 +236,15 @@
             "get_valid_slot;"\
             "echo active_slot: ${active_slot};"\
             "if test ${active_slot} = normal; then "\
-                "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${recovery_part} recovery_offset=${recovery_offset};"\
+                "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part={recovery_part} recovery_offset={recovery_offset};"\
                 "if itest ${upgrade_step} == 3; then "\
                     "if ext4load mmc 1:2 ${dtb_mem_addr} /recovery/dtb.img; then echo cache dtb.img loaded; fi;"\
                     "if ext4load mmc 1:2 ${loadaddr} /recovery/recovery.img; then echo cache recovery.img loaded; wipeisb; bootm ${loadaddr}; fi;"\
                 "else fi;"\
                 "if imgread kernel ${recovery_part} ${loadaddr} ${recovery_offset}; then wipeisb; bootm ${loadaddr}; fi;"\
             "else "\
-                "if test ${partiton_mode} = normal; then "\
-                    "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${boot_part} recovery_offset=${recovery_offset};"\
-                    "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
-                "else "\
-                    "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${recovery_part} recovery_offset=${recovery_offset};"\
-                    "if imgread kernel ${recovery_part} ${loadaddr} ${recovery_offset}; then wipeisb; bootm ${loadaddr}; fi;"\
-                "fi;"\
+                "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${boot_part} recovery_offset=${recovery_offset};"\
+                "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
             "fi;"\
             "\0"\
         "init_display="\

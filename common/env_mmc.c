@@ -62,6 +62,10 @@ __weak int mmc_get_env_addr(struct mmc *mmc, int copy, u32 *env_addr)
 		return -1;
 	}
 	offset = part_info->offset;
+#ifdef CONFIG_ENV_BACKUP
+	if (copy)
+		offset += CONFIG_ENV_OFFSET_REDUND;
+#endif /* CONFIG_ENV_BACKUP */
 	printf("mmc env offset: 0x%llx \n",offset);
 #endif
 	if (offset < 0)
@@ -156,7 +160,7 @@ static inline int write_env(struct mmc *mmc, unsigned long size,
 	return (n == blk_cnt) ? 0 : -1;
 }
 
-#ifdef CONFIG_ENV_OFFSET_REDUND
+#if defined(CONFIG_ENV_OFFSET_REDUND) && !defined(CONFIG_ENV_BACKUP)
 static unsigned char env_flags;
 #endif
 
@@ -179,10 +183,15 @@ int saveenv(void)
 		goto fini;
 
 #ifdef CONFIG_ENV_OFFSET_REDUND
+#if !defined(CONFIG_ENV_BACKUP)
 	env_new->flags	= ++env_flags; /* increase the serial */
-
+#endif /* !defined(CONFIG_ENV_BACKUP) */
+#ifndef CONFIG_ENV_BACKUP
 	if (gd->env_valid == 1)
 		copy = 1;
+#else
+_backup:
+#endif /* CONFIG_ENV_BACKUP */
 #endif
 
 	if (mmc_get_env_addr(mmc, copy, &offset)) {
@@ -197,7 +206,10 @@ int saveenv(void)
 		ret = 1;
 		goto fini;
 	}
-
+#ifdef CONFIG_ENV_BACKUP
+	if (0 == copy++)
+		goto _backup;
+#endif
 	puts("done\n");
 	ret = 0;
 
@@ -287,6 +299,7 @@ void env_relocate_spec(void)
 	} else if (!crc1_ok && crc2_ok) {
 		gd->env_valid = 2;
 	} else {
+	#if !defined(CONFIG_ENV_BACKUP)
 		/* both ok - check serial */
 		if (tmp_env1->flags == 255 && tmp_env2->flags == 0)
 			gd->env_valid = 2;
@@ -298,16 +311,35 @@ void env_relocate_spec(void)
 			gd->env_valid = 2;
 		else /* flags are equal - almost impossible */
 			gd->env_valid = 1;
+	#else
+		/* always the 1st one as the 1st one is updated 1st */
+		gd->env_valid = 1;
+	#endif /* !defined(CONFIG_ENV_BACKUP) */
 	}
-
+#ifdef CONFIG_ENV_BACKUP
+	printf("env_t size 0x%lx\n", sizeof(env_t));
+	//printf("flag1 0x%x, flag2 0x%x\n", tmp_env1->flags, tmp_env2->flags);
+	printf("env crc 0x%x-%s; redundant crc 0x%x-%s\n",
+		tmp_env1->crc, crc1_ok ? "OK" : "NOK",
+		tmp_env2->crc, crc2_ok ? "OK" : "NOK");
+	if ((crc1_ok + crc2_ok) == 1) {
+		if (write_env(mmc, CONFIG_ENV_SIZE,
+				(gd->env_valid == 1) ? offset2 : offset1,
+				(gd->env_valid == 1) ? (u_char *)tmp_env1 : (u_char *)tmp_env2))
+			printf("env restore %d failed\n", (gd->env_valid == 1) ? 2 : 1);
+		else
+			printf("env restore %d successed\n", (gd->env_valid == 1) ? 2 : 1);
+	}
+#endif /* CONFIG_ENV_BACKUP */
 	free(env_ptr);
 
 	if (gd->env_valid == 1)
 		ep = tmp_env1;
 	else
 		ep = tmp_env2;
-
+#if !defined(CONFIG_ENV_BACKUP)
 	env_flags = ep->flags;
+#endif
 	env_import((char *)ep, 0);
 	ret = 0;
 

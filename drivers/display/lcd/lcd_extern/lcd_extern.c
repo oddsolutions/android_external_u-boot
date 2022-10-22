@@ -80,9 +80,7 @@ static void aml_lcd_extern_init_table_dynamic_size_print(
 				for (j = 0; j < cmd_size; j++)
 					printf("%d,", table[i+2+j]);
 			} else if ((table[i] == LCD_EXT_CMD_TYPE_CMD) ||
-				   (table[i] == LCD_EXT_CMD_TYPE_CMD2) ||
-				   (table[i] == LCD_EXT_CMD_TYPE_CMD_BIN) ||
-				   (table[i] == LCD_EXT_CMD_TYPE_CMD2_BIN)) {
+				(table[i] == LCD_EXT_CMD_TYPE_CMD2)) {
 				for (j = 0; j < cmd_size; j++)
 					printf("0x%02x,", table[i+2+j]);
 			} else if ((table[i] == LCD_EXT_CMD_TYPE_CMD_DELAY) ||
@@ -1020,8 +1018,7 @@ static int aml_lcd_extern_init_table_dynamic_size_load_unifykey(
 			len += 1;
 			ret = aml_lcd_unifykey_len_check(key_len, len);
 			if (ret) {
-				EXTERR("%s: get %s type failed\n",
-				       extconf->name, propname);
+				EXTERR("%s: get %s failed\n", extconf->name, propname);
 				table[i] = LCD_EXT_CMD_TYPE_END;
 				table[i+1] = 0;
 				return -1;
@@ -1031,8 +1028,7 @@ static int aml_lcd_extern_init_table_dynamic_size_load_unifykey(
 			len += 1;
 			ret = aml_lcd_unifykey_len_check(key_len, len);
 			if (ret) {
-				EXTERR("%s: get %s cmd_size failed\n",
-				       extconf->name, propname);
+				EXTERR("%s: get %s failed\n", extconf->name, propname);
 				table[i] = LCD_EXT_CMD_TYPE_END;
 				table[i+1] = 0;
 				return -1;
@@ -1055,7 +1051,7 @@ static int aml_lcd_extern_init_table_dynamic_size_load_unifykey(
 			len += cmd_size;
 			ret = aml_lcd_unifykey_len_check(key_len, len);
 			if (ret) {
-				EXTERR("%s: get %s data failed\n", extconf->name, propname);
+				EXTERR("%s: get %s failed\n", extconf->name, propname);
 				table[i] = LCD_EXT_CMD_TYPE_END;
 				table[i+1] = 0;
 				return -1;
@@ -1077,8 +1073,7 @@ init_table_dynamic_i2c_spi_ukey_next:
 			len += 1;
 			ret = aml_lcd_unifykey_len_check(key_len, len);
 			if (ret) {
-				EXTERR("%s: get type %s failed\n",
-				       extconf->name, propname);
+				EXTERR("%s: get %s failed\n", extconf->name, propname);
 				table[i] = LCD_EXT_CMD_TYPE_END;
 				table[i+1] = 0;
 				return -1;
@@ -1088,8 +1083,7 @@ init_table_dynamic_i2c_spi_ukey_next:
 			len += 1;
 			ret = aml_lcd_unifykey_len_check(key_len, len);
 			if (ret) {
-				EXTERR("%s: get type %s failed\n",
-				       extconf->name, propname);
+				EXTERR("%s: get %s failed\n", extconf->name, propname);
 				table[i] = LCD_EXT_CMD_TYPE_END;
 				table[i+1] = 0;
 				return -1;

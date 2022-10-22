@@ -1,23 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * arch/arm/cpu/armv8/txl/hdmitx20/enc_clk_config.c
+ * arch/arm/cpu/armv8/g12a/hdmitx20/enc_clk_config.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #include <common.h>
 #include <amlogic/enc_clk_config.h>
@@ -891,7 +878,6 @@ void hdmitx_set_clk_(struct hdmitx_dev *hdev)
 	enum hdmi_vic vic = hdev->vic;
 	enum hdmi_color_format cs = hdev->para->cs;
 	enum hdmi_color_depth cd = hdev->para->cd;
-	char *sspll_dis = NULL;
 
 	/* YUV 422 always use 24B mode */
 	if (cs == HDMI_COLOR_FORMAT_422)
@@ -950,9 +936,7 @@ void hdmitx_set_clk_(struct hdmitx_dev *hdev)
 next:
 	set_hdmitx_sys_clk();
 	set_hpll_clk_out(p_enc[j].hpll_clk_out, hdev);
-	sspll_dis = getenv("sspll_dis");
-	if ((!sspll_dis || !strcmp(sspll_dis, "0")) &&
-		(cd == HDMI_COLOR_DEPTH_24B))
+	if (!getenv("sspll_dis"))
 		set_hpll_sspll(hdev);
 	set_hpll_od1(p_enc[j].od1);
 	set_hpll_od2(p_enc[j].od2);

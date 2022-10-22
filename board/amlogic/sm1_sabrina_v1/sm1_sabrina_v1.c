@@ -1,23 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * board/amlogic/txl_skt_v1/txl_skt_v1.c
+ * board/amlogic/sm1_ac215_v1/sm1_ac215_v1.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #include <common.h>
 #include <malloc.h>
@@ -54,6 +41,9 @@
 #include <dm.h>
 #ifdef CONFIG_AML_SPIFC
 #include <amlogic/spifc.h>
+#endif
+#ifdef CONFIG_AVB2_KPUB_VENDOR
+#include <generated/avb2_kpub_vendor.h>
 #endif
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -662,6 +652,7 @@ void aml_config_dtb(void)
 int board_late_init(void)
 {
 		//update env before anyone using it
+		run_command("bcb_check", 0);
 		run_command("get_rebootmode; echo reboot_mode=${reboot_mode}; "\
 						"if test ${reboot_mode} = factory_reset; then "\
 						"defenv_reserv;save; fi;", 0);
@@ -832,6 +823,33 @@ const char * const _env_args_reserve_[] =
 		"lock",
 		"upgrade_step",
 		"bootloader_version",
+		"hdr_policy",
+		"hdr_priority",
+		"hdmimode",
+		"outputmode",
+		"colorattribute",
+		"hdmi_colorspace",
+		"hdmi_colordepth",
+		"2160p60hz_deepcolor",
+		"2160p50hz_deepcolor",
+		"2160p30hz_deepcolor",
+		"2160p25hz_deepcolor",
+		"2160p24hz_deepcolor",
+		"smpte24hz_deepcolor",
+		"1080p60hz_deepcolor",
+		"1080p50hz_deepcolor",
+		"1080p24hz_deepcolor",
+		"720p60hz_deepcolor",
+		"720p50hz_deepcolor",
+		"1080i60hz_deepcolor",
+		"1080i50hz_deepcolor",
+		"576p50hz_deepcolor",
+		"480p60hz_deepcolor"
+		"digitaudiooutput",
+		"bestdolbyvision",
+		"is.bestmode",
+		"dolby_vision_on",
+		"dolby_status",
 
 		NULL//Keep NULL be last to tell END
 };

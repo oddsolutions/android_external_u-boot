@@ -1,22 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
+ * common/cmd_imgread.c
+ *
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
+ *
+ */
 
 #include <config.h>
 #include <common.h>
@@ -197,7 +185,6 @@ static int _aml_get_secure_boot_kernel_size(const void* pLoadaddr, unsigned* pTo
     return 0;
 }
 
-
 static int do_image_read_dtb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
     boot_img_hdr *hdr_addr = NULL;
@@ -362,13 +349,14 @@ static int do_image_read_kernel(cmd_tbl_t *cmdtp, int flag, int argc, char * con
 
     //Check if encrypted image
 #ifndef CONFIG_SKIP_KERNEL_DTB_SECBOOT_CHECK
-    rc = _aml_get_secure_boot_kernel_size(loadaddr, &secureKernelImgSz);
+	rc = _aml_get_secure_boot_kernel_size(loadaddr, &secureKernelImgSz);
     if (rc) {
             errorP("Fail in _aml_get_secure_boot_kernel_size, rc=%d\n", rc);
             return __LINE__;
     }
 #endif /*CONFIG_SKIP_KERNEL_DTB_SECBOOT_CHECK*/
-    if (secureKernelImgSz)
+
+	if (secureKernelImgSz)
     {
         actualBootImgSz = secureKernelImgSz + nCheckOffset;
         MsgP("secureKernelImgSz=0x%x\n", actualBootImgSz);

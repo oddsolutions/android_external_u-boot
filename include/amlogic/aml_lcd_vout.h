@@ -1,15 +1,8 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
  * include/amlogic/aml_lcd_vout.h
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the named License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
  */
 
@@ -47,7 +40,6 @@ extern unsigned int lcd_debug_print_flag;
 
 /* ******** clk_ctrl ******** */
 #define CLK_CTRL_LEVEL              28 /* [30:28] */
-#define CLK_CTRL_FRAC_SHIFT         24 /* [24] */
 #define CLK_CTRL_FRAC               0  /* [18:0] */
 
 
@@ -545,9 +537,6 @@ struct aml_lcd_drv_s {
 	void (*lcd_reg)(void);
 	void (*lcd_tcon_reg_print)(void);
 	void (*lcd_tcon_table_print)(void);
-	void (*lcd_tcon_vac_print)(void);
-	void (*lcd_tcon_demura_print)(void);
-	void (*lcd_tcon_acc_print)(void);
 	unsigned int (*lcd_tcon_reg_read)(unsigned int addr, unsigned int flag);
 	void (*lcd_tcon_reg_write)(unsigned int addr, unsigned int val, unsigned int flag);
 	void (*bl_on)(void);

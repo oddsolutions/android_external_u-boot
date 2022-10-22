@@ -1,22 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
+ * board/amlogic/configs/g12b_w411_v1.h
  *
- * Copyright (C) 2018 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #ifndef __G12B_W411_V1_H__
 #define __G12B_W411_V1_H__
@@ -119,7 +107,7 @@
         "recovery_part=recovery\0"\
         "recovery_offset=0\0"\
         "cvbs_drv=0\0"\
-        "lock=10101000\0"\
+        "lock=10001000\0"\
         "osd_reverse=0\0"\
         "video_reverse=0\0"\
         "active_slot=normal\0"\
@@ -137,7 +125,7 @@
             "\0"\
         "storeargs="\
             "get_bootloaderversion;" \
-            "setenv bootargs ${initargs} reboot_mode_android=${reboot_mode_android} logo=${display_layer},loaded,${fb_addr} fb_width=${fb_width} fb_height=${fb_height} display_bpp=${display_bpp} outputmode=${outputmode} vout=${outputmode},enable panel_type=${panel_type} lcd_ctrl=${lcd_ctrl} hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} androidboot.selinux=${EnableSelinux} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
+            "setenv bootargs ${initargs} reboot_mode_android=${reboot_mode_android} logo=${display_layer},loaded,${fb_addr} vout=${outputmode},enable panel_type=${panel_type} lcd_ctrl=${lcd_ctrl} hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} androidboot.selinux=${EnableSelinux} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
 	"setenv bootargs ${bootargs} androidboot.hardware=amlogic androidboot.bootloader=${bootloader_version} androidboot.build.expect.baseband=N/A;"\
             "run cmdline_keys;"\
             "\0"\

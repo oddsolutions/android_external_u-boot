@@ -1,15 +1,8 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * AMLOGIC LCD panel driver.
+ * board/amlogic/tm2_t962x3_ab309_v1/lcd.c
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the named License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
  */
 
@@ -241,11 +234,6 @@ static struct lcd_pinmux_ctrl_s lcd_pinmux_ctrl[LCD_PINMX_MAX] = {
 	{
 		.name = "lcd_p2p_pin", //GPIOH_0~19
 		.pinmux_set = {{7, 0x11111111}, {8, 0x11111111}, {9, 0x1}, {LCD_PINMUX_END, 0x0}},
-		.pinmux_clr = {{7, 0xffffffff}, {8, 0xffffffff}, {9, 0xfffff}, {LCD_PINMUX_END, 0x0}},
-	},
-	{
-		.name = "lcd_p2p_usit_pin", //GPIOH_0~19
-		.pinmux_set = {{7, 0x11111111}, {8, 0x11111111}, {9, 0x2}, {LCD_PINMUX_END, 0x0}},
 		.pinmux_clr = {{7, 0xffffffff}, {8, 0xffffffff}, {9, 0xfffff}, {LCD_PINMUX_END, 0x0}},
 	},
 	{

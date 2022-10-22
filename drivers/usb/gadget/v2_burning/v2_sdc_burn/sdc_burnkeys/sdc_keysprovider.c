@@ -1,14 +1,11 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * \file        sdc_keysprovider.c
- * \brief       Parse users' nankey/efusekey like PC's keysprovider.dll in sdcard burning mode
+ * drivers/usb/gadget/v2_burning/v2_sdc_burn/sdc_burnkeys/sdc_keysprovider.c
  *
- * \version     1.0.0
- * \date        2014/12/25
- * \author      Sam.Wu <yihui.wu@amlgic.com>
- *
- * Copyright (c) 2014 Amlogic. All Rights Reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
  */
+
 #include "../optimus_sdc_burn_i.h"
 #include "sdc_bootPart_license.h"
 
@@ -400,10 +397,7 @@ static int get_key_val_for_fmt_onlyone(const char* licenseName, u8* keyVal, unsi
 
         optimus_sdc_burn_switch_to_extmmc();
 
-        if (strcmp("1", getenv("usb_update")))
-            sprintf(_cmd, "fatload mmc 0:1 0x%p %s", keyVal, licenseName);
-        else
-            sprintf(_cmd, "fatload usb 0:1 0x%p %s", keyVal, licenseName);
+        sprintf(_cmd, "fatload mmc 0:1 0x%p %s", keyVal, licenseName);
         rc = run_command(_cmd, 0);
         if (rc) {
                 errorP("failed in cmd[%s]\n", _cmd);

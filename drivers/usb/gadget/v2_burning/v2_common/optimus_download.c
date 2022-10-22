@@ -1,22 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
+ * drivers/usb/gadget/v2_burning/v2_common/optimus_download.c
+ *
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
+ *
+ */
 
 #include "../v2_burning_i.h"
 #include <libfdt.h>
@@ -56,18 +44,6 @@ int v2_key_command(const int argc, char * const argv[], char *info)
     return OPT_DOWN_FAIL;
 }
 #endif//#ifndef CONFIG_UNIFY_KEY_MANAGE
-
-#if SUM_FUNC_TIME_COST
-static inline int
-store_read_ops_(unsigned char *partition_name,unsigned char * buf, uint64_t off, uint64_t size)
-{
-    int ret = 0;
-    _func_cost_utime_yret(FlashRdTime, ret, store_read_ops, partition_name, buf, off, size);
-    return ret;
-}
-#else
-#define store_read_ops_ store_read_ops
-#endif//#if SUM_FUNC_TIME_COST
 
 static unsigned long _dtb_is_loaded = 0;
 
@@ -259,11 +235,7 @@ static int optimus_verify_bootloader(struct ImgBurnInfo* pDownInfo, u8* genSum)
 }
 
 
-#if SUM_FUNC_TIME_COST
-static u32 _optimus_cb_simg_write_media(const unsigned destAddrInSec, const unsigned dataSzInBy, const char* data)
-#else
 u32 optimus_cb_simg_write_media(const unsigned destAddrInSec, const unsigned dataSzInBy, const char* data)
-#endif//#if SUM_FUNC_TIME_COST
 {
     int ret = OPT_DOWN_OK;
     unsigned char* partName = (unsigned char*)OptimusImgBurnInfo.partName;
@@ -285,16 +257,6 @@ u32 optimus_cb_simg_write_media(const unsigned destAddrInSec, const unsigned dat
     return dataSzInBy;
 }
 
-#if SUM_FUNC_TIME_COST
-u32 optimus_cb_simg_write_media(const unsigned destAddrInSec, const unsigned dataSzInBy, const char* data)
-{
-    extern unsigned long FlashWrTime;
-    u32 ret = 0;
-    _func_cost_utime_yret(FlashWrTime, ret, _optimus_cb_simg_write_media, destAddrInSec, dataSzInBy, data);
-    return ret;
-}
-#endif//#if SUM_FUNC_TIME_COST
-
 //return value: the data size disposed
 static u32 optimus_download_sparse_image(struct ImgBurnInfo* pDownInfo, u32 dataSz, const u8* data)
 {
@@ -312,14 +274,10 @@ static u32 optimus_download_sparse_image(struct ImgBurnInfo* pDownInfo, u32 data
     return dataSz - unParsedDataLen;
 }
 
-#if SUM_FUNC_TIME_COST
-static u32 _optimus_download_normal_image(struct ImgBurnInfo* pDownInfo, u32 dataSz, const u8* data)
-#else
 //Normal image can write directly to NAND, best aligned to 16K when write
 //FIXME: check it aligned to 16K when called
 //1, write to media     2 -- save the verify info
 static u32 optimus_download_normal_image(struct ImgBurnInfo* pDownInfo, u32 dataSz, const u8* data)
-#endif//#if SUM_FUNC_TIME_COST
 {
     int ret = 0;
     u64 addrOrOffsetInBy = pDownInfo->nextMediaOffset;
@@ -337,16 +295,6 @@ static u32 optimus_download_normal_image(struct ImgBurnInfo* pDownInfo, u32 data
 
     return dataSz;
 }
-
-#if SUM_FUNC_TIME_COST
-static u32 optimus_download_normal_image(struct ImgBurnInfo* pDownInfo, u32 dataSz, const u8* data)
-{
-    extern unsigned long FlashWrTime;
-    u32 ret = 0;
-    _func_cost_utime_yret(FlashWrTime, ret, _optimus_download_normal_image, pDownInfo, dataSz, data);
-    return ret;
-}
-#endif// #if SUM_FUNC_TIME_COST
 
 static int optimus_storage_open(struct ImgBurnInfo* pDownInfo, const u8* data, const u32 dataSz)
 {
@@ -578,7 +526,7 @@ static int optimus_storage_read(struct ImgBurnInfo* pDownInfo, u64 addrOrOffsetI
                 }
                 else
                 {
-                    ret = store_read_ops_(partName, buff, addrOrOffsetInBy, (u64)readSzInBy);
+                    ret = store_read_ops(partName, buff, addrOrOffsetInBy, (u64)readSzInBy);
                     platform_busy_increase_un_reported_size(readSzInBy);
                 }
                 if (ret) {

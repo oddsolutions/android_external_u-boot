@@ -1,23 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * board/amlogic/configs/axg_s400_v1.h
+ * board/amlogic/configs/axg_s410_v1.h
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #ifndef __AXG_S410_V1_H__
 #define __AXG_S410_V1_H__
@@ -106,7 +93,7 @@
         "fb_addr=0x3d800000\0" \
         "fb_width=768\0" \
         "fb_height=1024\0" \
-        "lock=10101000\0"\
+        "lock=10001000\0"\
         "usb_burning=update 1000\0" \
         "fdt_high=0x20000000\0"\
         "try_auto_burn=update 700 750;\0"\

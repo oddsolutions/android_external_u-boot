@@ -1,23 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * arch/arm/cpu/armv8/txl/hdmitx20/reg_ops.c
+ * arch/arm/cpu/armv8/g12a/hdmitx20/reg_ops.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #include <common.h>
 #include <asm/arch/io.h>
@@ -80,12 +67,9 @@ unsigned int hdmitx_rd_reg(unsigned int addr)
 		small_offset = small_offset << 2;
 	}
 	data = hd_read_reg(large_offset + small_offset);
-	if (dbg_en) {
-		if (large_offset == HDMITX_DWC_BASE_OFFSET)
-			pr_info("%s rd[0x%x] 0x%x\n", "DWC", addr, data);
-		else
-			pr_info("%s rd[0x%x] 0x%x\n", "TOP", addr, data);
-	}
+	if (dbg_en)
+		pr_info("%s wr[0x%x] 0x%x\n", large_offset ? "DWC" : "TOP",
+			addr, data);
 	return data;
 }
 
@@ -102,12 +86,9 @@ void hdmitx_wr_reg(unsigned int addr, unsigned int data)
 	}
 	hd_write_reg(large_offset + small_offset, data);
 
-	if (dbg_en) {
-		if (large_offset == HDMITX_DWC_BASE_OFFSET)
-			pr_info("%s wr[0x%x] 0x%x\n", "DWC", addr, data);
-		else
-			pr_info("%s wr[0x%x] 0x%x\n", "TOP", addr, data);
-	}
+	if (dbg_en)
+		pr_info("%s wr[0x%x] 0x%x\n", large_offset ? "DWC" : "TOP",
+			addr, data);
 }
 
 void hdmitx_set_reg_bits(unsigned int addr, unsigned int value,

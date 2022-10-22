@@ -1,22 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
+ * arch/arm/cpu/armv8/g12b/firmware/scp_task/hdmi_cec_arc.c
+ *
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
+ *
+ */
 
 /**************************************************
  *           HDMI CEC uboot code                  *
@@ -449,20 +437,30 @@ static void cec_report_device_power_status(int dst)
 
 static void cec_set_stream_path(void)
 {
-	/*unsigned char phy_addr_ab = (readl(AO_DEBUG_REG1) >> 8) & 0xff;*/
-	/*unsigned char phy_addr_cd = readl(AO_DEBUG_REG1) & 0xff;*/
+	unsigned char phy_addr_ab = (readl(AO_DEBUG_REG1) >> 8) & 0xff;
+	unsigned char phy_addr_cd = readl(AO_DEBUG_REG1) & 0xff;
+	unsigned char phy_ab = cec_msg.buf[cec_msg.rx_read_pos].msg[2];
+	unsigned char phy_cd = cec_msg.buf[cec_msg.rx_read_pos].msg[3];
 
 	if ((hdmi_cec_func_config >> CEC_FUNC_MASK) & 0x1) {
 		if ((hdmi_cec_func_config >> AUTO_POWER_ON_MASK) & 0x1) {
 			/* some tv send a wrong phy address */
-			/*if ((phy_addr_ab == cec_msg.buf[cec_msg.rx_read_pos].msg[2]) &&*/
-			/*    (phy_addr_cd == cec_msg.buf[cec_msg.rx_read_pos].msg[3]))  */{
+			if ((phy_addr_ab == phy_ab) &&
+			    (phy_addr_cd == phy_cd)) {
 				cec_msg.cec_power = 0x1;
 				uart_puts("stream_path pw on\n");
 			}
+			cec_dbg_print("phy addr  match:0x", phy_addr_ab);
+			cec_dbg_print("", phy_addr_cd);
+			uart_puts("\n");
+			cec_dbg_print("input:0x", phy_ab);
+			cec_dbg_print("", phy_cd);
+			uart_puts("\n");
 		}
 	}
 }
+
+
 
 void cec_routing_change(void)
 {

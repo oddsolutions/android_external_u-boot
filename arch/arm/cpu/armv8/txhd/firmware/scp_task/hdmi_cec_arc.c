@@ -1,15 +1,8 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * Copyright (C) 2017 Amlogic, Inc. All rights reserved.
+ * arch/arm/cpu/armv8/txhd/firmware/scp_task/hdmi_cec_arc.c
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
  */
 
@@ -29,7 +22,6 @@
 cec_msg_t cec_msg;
 unsigned char hdmi_cec_func_config;
 cec_wakeup_t cec_wakup;
-static unsigned int cec_wait_addr;
 
 #ifdef CEC_DBG_PRINT
 static void cec_dbg_print(char *s, int v)
@@ -848,7 +840,6 @@ void cec_node_init(void)
 		 {CEC_PLAYBACK_DEVICE_2_ADDR, CEC_PLAYBACK_DEVICE_3_ADDR, CEC_PLAYBACK_DEVICE_1_ADDR},
 		 {CEC_PLAYBACK_DEVICE_3_ADDR, CEC_PLAYBACK_DEVICE_1_ADDR, CEC_PLAYBACK_DEVICE_2_ADDR}};
 
-	cec_wait_addr = 0;
 	uart_puts(CEC_VERSION);
 	if (retry >= 12) {  /* retry all device addr */
 		cec_msg.log_addr = 0x0f;
@@ -948,6 +939,7 @@ void cec_node_init(void)
 
 int cec_suspend_wakeup_chk(void)
 {
+	static unsigned int cec_wait_addr = 0;
 	int exit_reason = 0;
 
 	if ((cec_msg.cec_power == 0x1) &&

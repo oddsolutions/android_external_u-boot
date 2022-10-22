@@ -1,19 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
  * drivers/display/lcd/aml_lcd_clk_ctrl.h
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
-*/
+ */
 
 #ifndef _LCD_CLK_CONFIG_CTRL_H
 #define _LCD_CLK_CONFIG_CTRL_H
@@ -43,7 +34,6 @@
 #define PLL_N_MIN_GXTVBB            1
 #define PLL_N_MAX_GXTVBB            1
 #define PLL_FRAC_RANGE_GXTVBB       (1 << 10)
-#define PLL_FRAC_SIGN_BIT_GXTVBB    11
 #define PLL_OD_SEL_MAX_GXTVBB       3
 #define PLL_FREF_MIN_GXTVBB         (5 * 1000)
 #define PLL_FREF_MAX_GXTVBB         (25 * 1000)
@@ -76,7 +66,6 @@
 #define PLL_N_MIN_GXL               1
 #define PLL_N_MAX_GXL               1
 #define PLL_FRAC_RANGE_GXL          (1 << 10)
-#define PLL_FRAC_SIGN_BIT_GXL       11
 #define PLL_OD_SEL_MAX_GXL          3
 #define PLL_FREF_MIN_GXL            (5 * 1000)
 #define PLL_FREF_MAX_GXL            (25 * 1000)
@@ -108,7 +97,6 @@
 #define PLL_N_MIN_TXL               1
 #define PLL_N_MAX_TXL               1
 #define PLL_FRAC_RANGE_TXL          (1 << 10)
-#define PLL_FRAC_SIGN_BIT_TXL       11
 #define PLL_OD_SEL_MAX_TXL          3
 #define PLL_FREF_MIN_TXL            (5 * 1000)
 #define PLL_FREF_MAX_TXL            (25 * 1000)
@@ -142,7 +130,6 @@
 #define PLL_N_MIN_TXLX               1
 #define PLL_N_MAX_TXLX               1
 #define PLL_FRAC_RANGE_TXLX          (1 << 10)
-#define PLL_FRAC_SIGN_BIT_TXLX       11
 #define PLL_OD_SEL_MAX_TXLX          3
 #define PLL_FREF_MIN_TXLX            (5 * 1000)
 #define PLL_FREF_MAX_TXLX            (25 * 1000)
@@ -171,7 +158,6 @@
 #define PLL_N_MIN_AXG               1
 #define PLL_N_MAX_AXG               1
 #define PLL_FRAC_RANGE_AXG          (1 << 10)
-#define PLL_FRAC_SIGN_BIT_AXG       11
 #define PLL_OD_SEL_MAX_AXG          3
 #define PLL_FREF_MIN_AXG            (5 * 1000)
 #define PLL_FREF_MAX_AXG            (25 * 1000)
@@ -204,7 +190,6 @@
 #define PLL_N_MIN_TXHD               1
 #define PLL_N_MAX_TXHD               1
 #define PLL_FRAC_RANGE_TXHD          (1 << 10)
-#define PLL_FRAC_SIGN_BIT_TXHD       11
 #define PLL_OD_SEL_MAX_TXHD          3
 #define PLL_FREF_MIN_TXHD            (5 * 1000)
 #define PLL_FREF_MAX_TXHD            (25 * 1000)
@@ -229,7 +214,6 @@
 /* ******** frequency limit (unit: kHz) ******** */
 #define PLL_OD_FB_GP0_G12A           0
 #define PLL_FRAC_RANGE_GP0_G12A      (1 << 17)
-#define PLL_FRAC_SIGN_BIT_GP0_G12A   18
 #define PLL_OD_SEL_MAX_GP0_G12A      5
 #define PLL_VCO_MIN_GP0_G12A         (3000 * 1000)
 #define PLL_VCO_MAX_GP0_G12A         (6000 * 1000)
@@ -248,7 +232,6 @@
 /* ******** frequency limit (unit: kHz) ******** */
 #define PLL_OD_FB_HPLL_G12A          0
 #define PLL_FRAC_RANGE_HPLL_G12A     (1 << 17)
-#define PLL_FRAC_SIGN_BIT_HPLL_G12A  18
 #define PLL_OD_SEL_MAX_HPLL_G12A     3
 #define PLL_VCO_MIN_HPLL_G12A        (3000 * 1000)
 #define PLL_VCO_MAX_HPLL_G12A        (6000 * 1000)
@@ -285,7 +268,6 @@
 #define PLL_N_MIN_TL1                1
 #define PLL_N_MAX_TL1                1
 #define PLL_FRAC_RANGE_TL1           (1 << 17)
-#define PLL_FRAC_SIGN_BIT_TL1        18
 #define PLL_OD_SEL_MAX_TL1           3
 #define PLL_FREF_MIN_TL1             (5 * 1000)
 #define PLL_FREF_MAX_TL1             (25 * 1000)

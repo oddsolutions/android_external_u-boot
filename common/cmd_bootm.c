@@ -130,10 +130,8 @@ static void defendkey_process(void)
 
 int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	int nRet;
+        int nRet;
 	char *avb_s;
-	char argv0_new[12] = {0};
-	char *argv_new = (char*)&argv0_new;
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
 	static int relocated = 0;
 
@@ -290,6 +288,8 @@ int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		else
 			nCheckOffset = 0;
 		img_addr += nCheckOffset;
+		char argv0_new[12] = {0};
+		char *argv_new = (char*)&argv0_new;
 		snprintf(argv0_new, sizeof(argv0_new), "%lx", img_addr);
 		argc = 1;
 		argv = (char**)&argv_new;

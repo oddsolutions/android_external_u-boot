@@ -1,22 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * drivers/display/dolby_vision.c
+ * drivers/display/osd/dolby_vision.c
  *
- * Copyright (C) 2018 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * Author: AMLOGIC dolby_vision driver
- *
-*/
-
+ */
 
 #include <common.h>
 #include <asm/arch/io.h>
@@ -431,12 +419,47 @@ static int check_tv_dv_mode(struct hdmitx_dev *hdmitx_device)
 }
 #endif
 
+/*true: attr match with dv_moder*/
+/*false: attr not match with dv_mode*/
+static bool is_attr_match(void)
+{
+	char *attr = getenv("colorattribute");
+
+	/*two case use std mode: */
+	/*1.user not requeset LL mode*/
+	/*2.user request LL mode but sink not support LL mode*/
+	if (dovi_mode.dv_rgb_444_8bit &&
+		(!request_ll_mode() || dovi_mode.ll_ycbcr_422_12bit == 0)) { /*STD*/
+		if (strcmp(attr, "444,8bit")) {
+			printf("expect output DV, but attr is %s\n", attr);
+			return false;
+		}
+	} else if (dovi_mode.ll_ycbcr_422_12bit) { /*LL YUV*/
+		if (strcmp(attr, "422,12bit")) {
+			printf("expect output LL YUV, but attr is %s\n", attr);
+			dovi_setting.dst_format = FORMAT_SDR;
+			return false;
+		}
+	} else if (dovi_mode.ll_rgb_444_10bit) {  /*LL RGB*/
+		if (strcmp(attr, "444,10bit")) {
+			printf("expect output LL RGB, but attr is %s\n", attr);
+			dovi_setting.dst_format = FORMAT_SDR;
+			return false;
+		}
+	}
+	return true;
+}
 static int check_tv_support(struct hdmitx_dev *hdmitx_device)
 {
 	if (check_tv_support_dv(hdmitx_device)) {
-		dovi_setting.dst_format = FORMAT_DOVI;
-		printf("output dovi mode: mode is : %s  attr: %s\n",
-			getenv("outputmode"), getenv("colorattribute"));
+		if (is_attr_match()) {
+			dovi_setting.dst_format = FORMAT_DOVI;
+			printf("output dovi mode: mode is : %s  attr: %s\n",
+				getenv("outputmode"), getenv("colorattribute"));
+		} else {
+			dovi_setting.dst_format = FORMAT_SDR;
+			printf("attr is not match, change to output SDR\n");
+		}
 	} else if (check_tv_support_hdr(hdmitx_device)) {
 		dovi_setting.dst_format = FORMAT_HDR10;
 		printf("output hdr mode: mode is : %s  attr: %s\n",
@@ -474,9 +497,6 @@ static void dolby_vision_get_vinfo(struct hdmitx_dev *hdmitx_device)
 	} else if (strstr(mode_name, "480")) {
 		width = 720;
 		height = 480;
-	} else if (strstr(mode_name, "smpte")) {
-		width = 4096;
-		height = 2160;
 	} else {
 		printf("unkown mode, use default 1080p\n");
 		width = 1920;

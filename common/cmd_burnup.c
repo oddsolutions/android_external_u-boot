@@ -1,22 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
+ * common/cmd_burnup.c
+ *
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
+ *
+ */
 
 #include <command.h>
 #include <watchdog.h>
@@ -34,7 +22,9 @@ Description:
 #define ErrP(fmt...)   printf("[burnup]Err:%s,L%d:", __func__, __LINE__),printf(fmt)
 
 static unsigned char *cmd_name = (unsigned char *)("store");
+#ifdef CONFIG_AML_V2_FACTORY_BURN
 const char*   _usbDownPartImgType = "";
+#endif //CONFIG_AML_V2_FACTORY_BURN
 
 #define MtdAlignBits    (12) //32k
 #define MtdAlignSz      (1U << MtdAlignBits)
@@ -84,12 +74,14 @@ int store_read_ops(unsigned char *partition_name,unsigned char * buf, uint64_t o
                 MsgP("Rd:Up sz 0x%llx to align 0x%x\n", size, MtdAlignSz);
                 size = ((size + MtdAlignMask)>>MtdAlignBits) << MtdAlignBits;
         }
+#ifdef CONFIG_AML_V2_FACTORY_BURN
 #if defined(UBIFS_IMG) || defined(CONFIG_CMD_UBIFS)
         if (!strcmp(_usbDownPartImgType, "ubifs")) {
                 sprintf(str, "%s  read 0x%llx %s 0x%llx", "ubi", addr, name, size);
                 MsgP("cmd[%s]", str);
         } else
 #endif
+#endif //CONFIG_AML_V2_FACTORY_BURN
 #endif//#if CONFIG_AML_MTD
         {// not ubi part
                 sprintf(str, "%s  read %s 0x%llx  0x%llx  0x%llx", cmd_name, name, addr, off, size);
@@ -149,11 +141,13 @@ int store_write_ops(unsigned char *partition_name,unsigned char * buf, uint64_t 
                 MsgP("Wr:Up sz 0x%llx to align 0x%x\n", size, MtdAlignSz);
                 size = ((size + MtdAlignMask)>>MtdAlignBits) << MtdAlignBits;
         }
+#ifdef CONFIG_AML_V2_FACTORY_BURN
 #if defined(UBIFS_IMG) || defined(CONFIG_CMD_UBIFS)
         if (!strcmp(_usbDownPartImgType, "ubifs")) {//ubi part
                 sprintf(str, "%s  write 0x%llx %s 0x%llx  ", "ubi", addr, name, size);
         } else
 #endif// #if defined(UBIFS_IMG) || defined(CONFIG_CMD_UBIFS)
+#endif //CONFIG_AML_V2_FACTORY_BURN
 #endif// #if CONFIG_AML_MTD
         {
                 sprintf(str, "%s  write %s 0x%llx  0x%llx  0x%llx", cmd_name, name, addr, off, size);

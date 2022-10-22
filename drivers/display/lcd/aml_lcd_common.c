@@ -1,19 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
  * drivers/display/lcd/aml_lcd_common.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
-*/
+ */
 
 #include <common.h>
 #include <malloc.h>
@@ -670,10 +661,7 @@ static int lcd_pinmux_load_from_bsp(struct lcd_config_s *pconf)
 		}
 		break;
 	case LCD_P2P:
-		if (pconf->lcd_control.p2p_config->p2p_type == P2P_USIT)
-			sprintf(propname, "lcd_p2p_usit_pin");
-		else
-			sprintf(propname, "lcd_p2p_pin");
+		sprintf(propname, "lcd_p2p_pin");
 		pinmux = pconf->lcd_pinmux;
 		for (i = 0; i < LCD_PINMX_MAX; i++) {
 			if (pinmux == NULL)

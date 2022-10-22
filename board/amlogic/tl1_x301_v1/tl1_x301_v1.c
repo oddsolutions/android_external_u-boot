@@ -1,22 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
+ * board/amlogic/tl1_x301_v1/tl1_x301_v1.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #include <common.h>
 #include <malloc.h>
@@ -908,8 +896,6 @@ int checkhw(char * name)
 	unsigned int ddr_size = 0;
 	char loc_name[64] = {0};
 	int i;
-	char *mem_size = getenv("mem_size");
-
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
 		ddr_size += gd->bd->bi_dram[i].size;
 	}
@@ -919,11 +905,6 @@ int checkhw(char * name)
 	switch (ddr_size) {
 		case 0x80000000:
 			strcpy(loc_name, "tl1_t962x2_x301-2g\0");
-
-			/* if limit memory size */
-			if (!strcmp(mem_size, "1g")) {
-				strcpy(loc_name, "tl1_t962x2_x301-1g\0");
-			}
 			break;
 		case 0x40000000:
 			strcpy(loc_name, "tl1_t962x2_x301-1g\0");

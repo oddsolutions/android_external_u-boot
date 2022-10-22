@@ -1,19 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
  * drivers/display/lcd/lcd_tablet/lcd_drv.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
-*/
+ */
 
 #include <common.h>
 #include <malloc.h>
@@ -353,36 +344,8 @@ static void lcd_lvds_control_set(struct lcd_config_s *pconf)
 		break;
 	case LCD_CHIP_TL1:
 	case LCD_CHIP_TM2:
-		/* lvds channel:    //tx 12 channels
-		 *    0: d0_a
-		 *    1: d1_a
-		 *    2: d2_a
-		 *    3: clk_a
-		 *    4: d3_a
-		 *    5: d4_a
-		 *    6: d0_b
-		 *    7: d1_b
-		 *    8: d2_b
-		 *    9: clk_b
-		 *    a: d3_b
-		 *    b: d4_b */
-		if (port_swap) {
-			if (lane_reverse) {
-				lcd_vcbus_write(P2P_CH_SWAP0, 0x456789ab);
-				lcd_vcbus_write(P2P_CH_SWAP1, 0x0123);
-			} else {
-				lcd_vcbus_write(P2P_CH_SWAP0, 0x10ba9876);
-				lcd_vcbus_write(P2P_CH_SWAP1, 0x5432);
-			}
-		} else {
-			if (lane_reverse) {
-				lcd_vcbus_write(P2P_CH_SWAP0, 0xab012345);
-				lcd_vcbus_write(P2P_CH_SWAP1, 0x6789);
-			} else {
-				lcd_vcbus_write(P2P_CH_SWAP0, 0x76543210);
-				lcd_vcbus_write(P2P_CH_SWAP1, 0xba98);
-			}
-		}
+		lcd_vcbus_write(P2P_CH_SWAP0, 0x76543210);
+		lcd_vcbus_write(P2P_CH_SWAP1, 0xba98);
 		break;
 	default:
 		lcd_vcbus_setb(LCD_PORT_SWAP, port_swap, 12, 1);

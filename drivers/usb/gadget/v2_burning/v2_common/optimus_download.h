@@ -1,23 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
-
+ * drivers/usb/gadget/v2_burning/v2_common/optimus_download.h
+ *
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
+ *
+ */
 
 #ifndef __OPTIMUS_DOWNLOAD_H__
 #define __OPTIMUS_DOWNLOAD_H__
@@ -95,7 +82,6 @@ unsigned v2_key_burn(const char* keyName, const u8* keyVal, const unsigned keyVa
 #define OPTIMUS_DOWNLOAD_TRANSFER_BUF_ADDR      (OPTIMUS_SPARSE_IMG_LEFT_DATA_ADDR_LOW + OPTIMUS_SPARSE_IMG_LEFT_DATA_MAX_SZ)
 
 #define OPTIMUS_DOWNLOAD_SLOT_SZ                (64<<10)    //64K
-#define OPTIMUS_LOCAL_UPGRADE_SLOT_SZ           (OPTIMUS_DOWNLOAD_SLOT_SZ * 16) //1M per time for fatload
 #define OPTIMUS_DOWNLOAD_SLOT_SZ_SHIFT_BITS     (16)    //64K
 #define OPTIMUS_DOWNLOAD_SLOT_NUM               (OPTIMUS_DOWNLOAD_TRANSFER_BUF_TOTALSZ/OPTIMUS_DOWNLOAD_SLOT_SZ)
 
@@ -215,29 +201,6 @@ int optimus_work_mode_set(int workmode);
 //getenv wrapper to avoid coverity tained string error
 //cannot called nested as it shares the same buffer
 const char* getenv_optimus(const char* name);
-
-#ifdef CONFIG_AML_FACTORY_BURN_LOCAL_UPGRADE
-#define SUM_FUNC_TIME_COST 0
-#if SUM_FUNC_TIME_COST
-#define _func_cost_utime_yret(sum, ret, func, ...) do {\
-    unsigned long uTime = timer_get_us(); \
-    ret = func(__VA_ARGS__); \
-    sum += timer_get_us() - uTime; \
-} while(0)
-
-#define _func_cost_utime_nret(sum, func, ...) do {\
-    unsigned long uTime = timer_get_us(); \
-    func(__VA_ARGS__); \
-    sum += timer_get_us() - uTime; \
-} while(0)
-
-extern unsigned long ImageRdTime;
-extern unsigned long FlashRdTime;
-extern unsigned long FlashWrTime;
-
-#else
-#endif//#if SUM_FUNC_TIME_COST
-#endif//#ifdef CONFIG_AML_FACTORY_BURN_LOCAL_UPGRADE
 
 #endif//ifndef __OPTIMUS_DOWNLOAD_H__
 

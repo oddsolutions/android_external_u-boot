@@ -1,22 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
+ * drivers/mtd/nand/amlogic_mtd/nand_flash.c
+ *
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
+ *
+ */
 
 #include <common.h>
 #include <environment.h>
@@ -606,18 +594,6 @@ struct aml_nand_flash_dev aml_nand_flash_ids[] = {
 		0,
 		(NAND_TIMING_MODE5 | NAND_ECC_BCH8_MODE )},
 
-	{"Slc NAND 4Gib MX30LF4G28AD ",
-		{NAND_MFR_MACRONIX, 0xdc, 0x90, 0xA2, 0x57, 0x03},
-		4096,
-		512,
-		0x40000,
-		256,
-		1,
-		16,
-		15,
-		0,
-		(NAND_TIMING_MODE5 | NAND_ECC_BCH8_MODE )},
-
 	{"A revision NAND 128MB TC58NVG0S3HTA00 ",
 		{NAND_MFR_TOSHIBA, 0xf1, 0x80, 0x15, 0x72},
 		2048,
@@ -636,18 +612,6 @@ struct aml_nand_flash_dev aml_nand_flash_ids[] = {
 		512,
 		0x40000,
 		224,
-		1,
-		16,
-		15,
-		0,
-		(NAND_TIMING_MODE5 | NAND_ECC_BCH8_MODE)},
-
-	{"4Gib MT29F4G08ABAFAWP",
-		{NAND_MFR_MICRON, 0xdc, 0x80, 0xA6, 0x62},
-		4096,
-		512,
-		0x40000,
-		256,
 		1,
 		16,
 		15,

@@ -1,22 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
+ * board/amlogic/gxl_p281_v1/firmware/scp_task/pwr_ctrl.c
+ *
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
+ *
+ */
 
 /*p200/201	GPIOAO_2  powr on	:0, power_off	:1*/
 
@@ -158,7 +146,11 @@ void get_wakeup_source(void *response, unsigned int suspend_from)
 
 	p->status = RESPONSE_OK;
 	val = (POWER_KEY_WAKEUP_SRC | AUTO_WAKEUP_SRC | REMOTE_WAKEUP_SRC |
-	       ETH_PHY_WAKEUP_SRC | BT_WAKEUP_SRC | CEC_WAKEUP_SRC);
+	       ETH_PHY_WAKEUP_SRC | BT_WAKEUP_SRC);
+#ifdef CONFIG_CEC_WAKEUP
+	if (suspend_from != SYS_POWEROFF)
+		val |= CEC_WAKEUP_SRC;
+#endif
 	p->sources = val;
 
 	/* Power Key: AO_GPIO[3]*/
@@ -227,6 +219,8 @@ static unsigned int detect_key(unsigned int suspend_from)
 #ifdef CONFIG_CEC_WAKEUP
 		if (irq[IRQ_AO_CEC] == IRQ_AO_CEC_NUM) {
 			irq[IRQ_AO_CEC] = 0xFFFFFFFF;
+			if (suspend_from == SYS_POWEROFF)
+				continue;
 			if (cec_msg.log_addr) {
 				if (hdmi_cec_func_config & 0x1) {
 					cec_handler();

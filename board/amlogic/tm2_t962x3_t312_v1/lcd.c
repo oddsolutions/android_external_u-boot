@@ -1,15 +1,8 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * AMLOGIC LCD panel driver.
+ * board/amlogic/tm2_t962x3_t312_v1/lcd.c
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the named License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
  */
 
@@ -48,17 +41,17 @@ static struct lcd_power_step_s lcd_power_off_step_p2p[] = {
 };
 
 static char lcd_bl_gpio[BL_GPIO_NUM_MAX][LCD_CPU_GPIO_NAME_MAX] = {
-	"GPIOH_11",
-	"GPIOH_10",
-	"GPIOH_13",
+	"GPIOAO_11",
+	"GPIOZ_5",
+	"GPIOZ_6",
 	"invalid", /* ending flag */
 };
 
 #ifdef CONFIG_AML_LOCAL_DIMMING
 static char lcd_bl_ldim_gpio[BL_GPIO_NUM_MAX][LCD_CPU_GPIO_NAME_MAX] = {
-	"GPIOH_14", /* LD_EN */
-	"GPIOH_10",  /* DIMMING_PWM */
-	"GPIOH_13",  /* LD_EN2 */
+	"GPIOH_10", /* LD_EN */
+	"GPIOZ_5",  /* DIMMING_PWM */
+	"GPIOZ_6",  /* LD_EN2 */
 	"invalid",  /* ending flag */
 };
 #endif
@@ -264,30 +257,40 @@ static struct lcd_pinmux_ctrl_s lcd_pinmux_ctrl[LCD_PINMX_MAX] = {
 		.pinmux_clr = {{7, 0xffffffff}, {8, 0xffffffff}, {9, 0xfffff}, {LCD_PINMUX_END, 0x0}},
 	},
 	{
-		.name = "lcd_p2p_usit_pin", //GPIOH_0~19
-		.pinmux_set = {{7, 0x11111111}, {8, 0x11111111}, {9, 0x2}, {LCD_PINMUX_END, 0x0}},
-		.pinmux_clr = {{7, 0xffffffff}, {8, 0xffffffff}, {9, 0xfffff}, {LCD_PINMUX_END, 0x0}},
-	},
-	{
 		.name = "invalid",
 	},
 };
 
 static struct lcd_pinmux_ctrl_s bl_pinmux_ctrl[BL_PINMUX_MAX] = {
 	{
-		.name = "bl_pwm_vs_on_pin", /*GPIOH_10*/
-		.pinmux_set = {{8, 0x00000600}, {LCD_PINMUX_END, 0x0} },
-		.pinmux_clr = {{8, 0x00000f00}, {LCD_PINMUX_END, 0x0} },
+		.name = "bl_pwm_on_pin", //GPIOZ_5
+		.pinmux_set = {{2, 0x00400000}, {LCD_PINMUX_END, 0x0}},
+		.pinmux_clr = {{2, 0x00f00000}, {LCD_PINMUX_END, 0x0}},
 	},
 	{
-		.name = "bl_pwm_combo_1_on_pin", /*GPIOH_13*/
-		.pinmux_set = {{8, 0x00400000}, {LCD_PINMUX_END, 0x0} },
-		.pinmux_clr = {{8, 0x00f00000}, {LCD_PINMUX_END, 0x0} },
+		.name = "bl_pwm_vs_on_pin", //GPIOZ_5
+		.pinmux_set = {{2, 0x00300000}, {LCD_PINMUX_END, 0x0}},
+		.pinmux_clr = {{2, 0x00f00000}, {LCD_PINMUX_END, 0x0}},
 	},
 	{
-		.name = "bl_pwm_combo_0_vs_on_pin", /*GPIOH_10*/
-		.pinmux_set = {{8, 0x00000600}, {LCD_PINMUX_END, 0x0} },
-		.pinmux_clr = {{8, 0x00000f00}, {LCD_PINMUX_END, 0x0} },
+		.name = "bl_pwm_combo_0_on_pin", //GPIOZ_5
+		.pinmux_set = {{2, 0x00400000}, {LCD_PINMUX_END, 0x0}},
+		.pinmux_clr = {{2, 0x00f00000}, {LCD_PINMUX_END, 0x0}},
+	},
+	{
+		.name = "bl_pwm_combo_1_on_pin", //GPIOZ_6
+		.pinmux_set = {{2, 0x04000000}, {LCD_PINMUX_END, 0x0}},
+		.pinmux_clr = {{2, 0x0f000000}, {LCD_PINMUX_END, 0x0}},
+	},
+	{
+		.name = "bl_pwm_combo_0_vs_on_pin", //GPIOZ_5
+		.pinmux_set = {{2, 0x00300000}, {LCD_PINMUX_END, 0x0}},
+		.pinmux_clr = {{2, 0x00f00000}, {LCD_PINMUX_END, 0x0}},
+	},
+	{
+		.name = "bl_pwm_combo_1_vs_on_pin", //GPIOZ_6
+		.pinmux_set = {{2, 0x03000000}, {LCD_PINMUX_END, 0x0}},
+		.pinmux_clr = {{2, 0x0f000000}, {LCD_PINMUX_END, 0x0}},
 	},
 	{
 		.name = "invalid",

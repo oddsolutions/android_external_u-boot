@@ -150,7 +150,6 @@ void boot_info_reset(AvbABData* info)
 
 void dump_boot_info(AvbABData* info)
 {
-#if 0
     printf("info->magic = %s\n", info->magic);
     printf("info->version_major = %d\n", info->version_major);
     printf("info->version_minor = %d\n", info->version_minor);
@@ -162,7 +161,6 @@ void dump_boot_info(AvbABData* info)
     printf("info->slots[1].successful_boot = %d\n", info->slots[1].successful_boot);
 
     printf("info->crc32 = %d\n", info->crc32);
-#endif
 }
 
 static bool slot_is_bootable(AvbABSlotData* slot) {
@@ -264,23 +262,15 @@ static int do_GetValidSlot(
     bootable_a = slot_is_bootable(&(info.slots[0]));
     bootable_b = slot_is_bootable(&(info.slots[1]));
 
-    if (dynamic_partition)
-        setenv("partiton_mode","dynamic");
-    else
-        setenv("partiton_mode","normal");
-
     if ((slot == 0) && (bootable_a)) {
         if (has_boot_slot == 1) {
             setenv("active_slot","_a");
             setenv("boot_part","boot_a");
-            setenv("recovery_part","recovery_a");
             setenv("slot-suffixes","0");
         }
         else {
             setenv("active_slot","normal");
             setenv("boot_part","boot");
-            setenv("recovery_part","recovery");
-            setenv("slot-suffixes","-1");
         }
         return 0;
     }
@@ -289,14 +279,11 @@ static int do_GetValidSlot(
         if (has_boot_slot == 1) {
             setenv("active_slot","_b");
             setenv("boot_part","boot_b");
-            setenv("recovery_part","recovery_b");
             setenv("slot-suffixes","1");
         }
         else {
             setenv("active_slot","normal");
             setenv("boot_part","boot");
-            setenv("recovery_part","recovery");
-            setenv("slot-suffixes","-1");
         }
         return 0;
     }
@@ -335,14 +322,12 @@ static int do_SetActiveSlot(
         setenv("active_slot","_a");
         setenv("slot-suffixes","0");
         setenv("boot_part","boot_a");
-        setenv("recovery_part","recovery_a");
         printf("set active slot a \n");
         boot_info_set_active_slot(&info, 0);
     } else if (strcmp(argv[1], "b") == 0) {
         setenv("active_slot","_b");
         setenv("slot-suffixes","1");
         setenv("boot_part","boot_b");
-        setenv("recovery_part","recovery_b");
         printf("set active slot b \n");
         boot_info_set_active_slot(&info, 1);
     } else {

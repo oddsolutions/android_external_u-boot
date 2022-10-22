@@ -1,29 +1,15 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * arch/arm/cpu/armv8/txl/firmware/scp_task/user_task.c
+ * arch/arm/cpu/armv8/g12a/firmware/scp_task/user_task.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #include "config.h"
 #include "data.h"
 #include "registers.h"
 #include "task_apis.h"
-#include "suspend.h"
 
 #define TASK_ID_IDLE 0
 #define TASK_ID_LOW_MB	3
@@ -37,9 +23,6 @@ enum scpi_client_id {
 	SCPI_CL_POWER,
 	SCPI_CL_THERMAL,
 	SCPI_CL_REMOTE,
-	SCPI_CL_LED_TIMER,
-	SCPI_CL_SET_CEC_DATA,
-	SCPI_CL_UPDATE_PHYADDR,
 	SCPI_MAX,
 };
 
@@ -107,10 +90,6 @@ void secure_task(void)
 				*response = RESPONSE_SUSPEND_LEAVE;
 				presume = (struct resume_param *)(response+1);
 				presume->method = resume_data.method;
-				if (presume->method == CEC_WAKEUP) {
-					presume->date1 = resume_data.date1;
-					presume->date2 = resume_data.date2;
-				}
 			}
 	}
 		__switch_back_securemb();
@@ -120,18 +99,6 @@ void secure_task(void)
 void set_wakeup_method(unsigned int method)
 {
 	resume_data.method = method;
-}
-
-void set_cec_val1(unsigned int cec_val)
-{
-	resume_data.date1 = cec_val;
-	dbg_print("cec1: ", resume_data.date1);
-}
-
-void set_cec_val2(unsigned int cec_val)
-{
-	resume_data.date2 = cec_val;
-	dbg_print("cec2: ", resume_data.date2);
 }
 
 void process_high_task(unsigned command)
@@ -166,24 +133,17 @@ void high_task(void)
 }
 
 extern unsigned int usr_pwr_key;
-extern void cec_update_config_data(void *data, unsigned int size);
-extern void cec_update_phyaddress(unsigned int phyaddr);
 void process_low_task(unsigned command)
 {
 	unsigned *pcommand =
 	    (unsigned *)(&(low_task_share_mem[TASK_COMMAND_OFFSET]));
 	/*unsigned *response =
 	    (unsigned *)(&(low_task_share_mem[TASK_RESPONSE_OFFSET]));*/
-	unsigned int cl_id = (command >> 16);
-	unsigned int size = *(pcommand + 1);
+
 	if ((command & 0xffff) == LOW_TASK_USR_DATA) {/*0-15bit: comd; 16-31bit: client_id*/
 		if ((command >> 16) == SCPI_CL_REMOTE) {
 			usr_pwr_key = *(pcommand + 2);/*tx_size locates at *(pcommand + 1)*/
 			dbg_print("pwr_key=",usr_pwr_key);
-		} else if (cl_id == SCPI_CL_SET_CEC_DATA) {
-			cec_update_config_data((pcommand + 2), size);
-		} else if (cl_id == SCPI_CL_UPDATE_PHYADDR) {
-			cec_update_phyaddress(*(pcommand + 2));
 		}
 	}
 }

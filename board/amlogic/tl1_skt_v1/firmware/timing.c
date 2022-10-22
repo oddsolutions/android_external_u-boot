@@ -1,23 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * board/amlogic/txl_skt_v1/firmware/timing.c
+ * board/amlogic/tl1_skt_v1/firmware/timing.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #include <asm/arch/secure_apb.h>
 #include <asm/arch/timing.h>
@@ -120,7 +107,6 @@ ddr_set_t __ddr_setting[] = {
 	.magic					= DRAM_CFG_MAGIC,
 	.diagnose				= CONFIG_DIAGNOSE_DISABLE,
 	.fast_boot[0]			= 6,
-	.ddr_func				= DDR_FUNC|DDR_FUNC_CONFIG_DFE_FUNCTION,
 //	.slt_test_function[0]=DMC_TEST_SLT_ENABLE_DDR_AUTO_FAST_BOOT,
 //	.dqs_offset_value=0x1<<4,//bit 0-2 read offset ,bit 3 read offset direction ,bit 4-6 write offset,bit 7 write offset direction.
 },
@@ -191,7 +177,7 @@ ddr_set_t __ddr_setting[] = {
 
 
 	.pll_ssc_mode			= (1<<20) | (1<<8) | (2<<4) | 0,//center_ssc_1000ppm
-	.ddr_func				= DDR_FUNC|DDR_FUNC_CONFIG_DFE_FUNCTION,
+	.ddr_func				= DDR_FUNC,
 	.magic					= DRAM_CFG_MAGIC,
 //	.slt_test_function[0]=DMC_TEST_SLT_ENABLE_DDR_AUTO_FAST_BOOT,
 //	.dqs_offset_value=0x1,//bit 0-2 read offset ,bit 3 read offset direction ,bit 4-6 write offset,bit 7 write offset direction.

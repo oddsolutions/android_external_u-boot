@@ -1,22 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
+ * common/cmd_bcb.c
+ *
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
+ *
+ */
 
 #include <common.h>
 #include <command.h>
@@ -92,7 +80,6 @@ static int do_RunBcbCommand(
     char miscbuf[MISCBUF_SIZE] = {0};
     char clearbuf[COMMANDBUF_SIZE+STATUSBUF_SIZE+RECOVERYBUF_SIZE] = {0};
     char* RebootMode;
-    char* ActiveSlot;
 
     if (argc != 2) {
         return cmd_usage(cmdtp);
@@ -174,15 +161,6 @@ static int do_RunBcbCommand(
         run_command("setenv bootargs ${bootargs} androidboot.quiescent=1;", 0);
     }
 
-    run_command("get_valid_slot", 0);
-    if (getenv("active_slot")) {
-        ActiveSlot = getenv("active_slot");
-        if (strstr(ActiveSlot, "normal") == NULL) {
-            printf("ab update mode\n");
-            run_command("setenv bootargs ${bootargs} androidboot.slot_suffix=${active_slot};", 0);
-        }
-    }
-
     if (!memcmp(command, CMD_RUN_RECOVERY, strlen(CMD_RUN_RECOVERY))) {
         if (run_command("run recovery_from_flash", 0) < 0) {
             printf("run_command for cmd:run recovery_from_flash failed.\n");
@@ -216,6 +194,49 @@ static int do_RunBcbCommand(
  ERR:
     return -1;
 }
+
+static int do_CheckBcb(
+    cmd_tbl_t * cmdtp,
+    int flag,
+    int argc,
+    char * const argv[])
+{
+    char command[COMMANDBUF_SIZE] = {0};
+    char miscbuf[MISCBUF_SIZE] = {0};
+    char *partition = "misc";
+    const char *upgradestep = NULL;
+
+    if (argc != 1) {
+        return cmd_usage(cmdtp);
+    }
+
+    upgradestep = getenv("upgrade_step");
+    if (strcmp(upgradestep, "3")) {
+        return 0;
+    }
+
+    if (store_read_ops((unsigned char *)partition,
+        (unsigned char *)miscbuf, 0, sizeof(miscbuf)) < 0) {
+        printf("failed to store read %s.\n", partition);
+        goto OUT;
+    }
+
+    memcpy(command, miscbuf, sizeof(command));
+    printf("get bootloader message from misc partition: %s\n", command);
+
+    if (!memcmp(command, CMD_RUN_RECOVERY, strlen(CMD_RUN_RECOVERY))) {
+        printf("we will enter recovery later, don't need to change upgrade_step\n");
+        return 0;
+    }
+
+OUT:
+    if (!strcmp(upgradestep, "3")) {
+        printf("bcb hasn't valid recovery cmds, set upgradestep from 3 to 1\n");
+        setenv("upgrade_step", "1");
+    }
+    return 0;
+}
+
 #else
 static int do_RunBcbCommand(
     cmd_tbl_t * cmdtp,
@@ -229,8 +250,28 @@ static int do_RunBcbCommand(
     // Do-Nothing!
     return 0;
 }
+
+static int do_CheckBcb(
+    cmd_tbl_t * cmdtp,
+    int flag,
+    int argc,
+    char * const argv[]) {
+    if (argc != 1) {
+        return cmd_usage(cmdtp);
+    }
+
+    // Do-Nothing!
+    return 0;
+}
+
 #endif /* CONFIG_BOOTLOADER_CONTROL_BLOCK */
 
+U_BOOT_CMD(
+    bcb_check, 1, 0, do_CheckBcb,
+    "bcb_check",
+    "\nThis command will check is there recovery cmds in bcb\n"
+    "So you can execute command: bcb_check"
+);
 
 // BCB: Bootloader Control Block
 U_BOOT_CMD(

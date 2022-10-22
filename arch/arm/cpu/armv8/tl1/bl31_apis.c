@@ -1,21 +1,9 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * arch/arm/cpu/armv8/txlx/bl31_apis.c
+ * arch/arm/cpu/armv8/tl1/bl31_apis.c
  *
- * Copyright (C) 2014-2017 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 /*
@@ -41,36 +29,6 @@ long get_sharemem_info(unsigned long function_id)
 		: "+r" (function_id));
 
 	return function_id;
-}
-
-int32_t set_boot_params(const keymaster_boot_params *boot_params)
-{
-	const unsigned cmd = SET_BOOT_PARAMS;
-
-	if (!boot_params)
-		return -1;
-
-	if (!sharemem_input_base)
-		sharemem_input_base =
-			get_sharemem_info(GET_SHARE_MEM_INPUT_BASE);
-
-	memcpy((void *)sharemem_input_base,
-			(const void *)boot_params, sizeof(keymaster_boot_params));
-
-	asm __volatile__("" : : : "memory");
-	register uint64_t x0 asm("x0") = cmd;
-	register uint64_t x1 asm("x1") = sizeof(keymaster_boot_params);
-	do {
-		asm volatile(
-		    __asmeq("%0", "x0")
-		    __asmeq("%1", "x0")
-		    __asmeq("%2", "x1")
-		    "smc    #0\n"
-		    : "=r"(x0)
-		    : "r"(x0), "r"(x1));
-	} while (0);
-
-	return (!x0)? -1: 0;
 }
 
 #ifdef CONFIG_EFUSE

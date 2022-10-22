@@ -1,23 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
  * board/amlogic/configs/gxm_q201_v1.h
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #ifndef __GXM_Q201_V1_H__
 #define __GXM_Q201_V1_H__
@@ -117,7 +104,7 @@
         "recovery_offset=0\0"\
         "cvbs_drv=0\0"\
         "active_slot=normal\0"\
-        "lock=10101000\0"\
+        "lock=10001000\0"\
         "boot_part=boot\0"\
         "reboot_mode_android=""normal""\0"\
         "fs_type=""rootfstype=ramfs""\0"\
@@ -132,7 +119,7 @@
             "\0"\
     "storeargs="\
             "get_bootloaderversion;" \
-            "setenv bootargs ${initargs}  hdr_priority=${hdr_priority} otg_device=${otg_device} reboot_mode_android=${reboot_mode_android} androidboot.selinux=${EnableSelinux} logo=${display_layer},loaded,${fb_addr},${outputmode} maxcpus=${maxcpus} vout=${outputmode},enable hdmitx=${cecconfig},${colorattribute}  hdmimode=${hdmimode} cvbsmode=${cvbsmode} hdmitx=${cecconfig} cvbsdrv=${cvbs_drv} pq=${pq} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
+            "setenv bootargs ${initargs} otg_device=${otg_device} reboot_mode_android=${reboot_mode_android} androidboot.selinux=${EnableSelinux} logo=${display_layer},loaded,${fb_addr},${outputmode} maxcpus=${maxcpus} vout=${outputmode},enable hdmitx=${cecconfig},${colorattribute}  hdmimode=${hdmimode} cvbsmode=${cvbsmode} hdmitx=${cecconfig} cvbsdrv=${cvbs_drv} pq=${pq} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
 	"setenv bootargs ${bootargs} androidboot.hardware=amlogic androidboot.bootloader=${bootloader_version} androidboot.build.expect.baseband=N/A;"\
             "run cmdline_keys;"\
             "\0"\

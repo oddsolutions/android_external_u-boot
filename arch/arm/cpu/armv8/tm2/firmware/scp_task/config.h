@@ -1,31 +1,17 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * arch/arm/cpu/armv8/txl/firmware/scp_task/config.h
+ * arch/arm/cpu/armv8/tm2/firmware/scp_task/config.h
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
 #define CONFIG_RAM_BASE        (0x10000000 + 48 * 1024)
-#define CONFIG_RAM_SIZE        (45 * 1024)
+#define CONFIG_RAM_SIZE        (13 * 1024)
 #define CONFIG_RAM_END         (CONFIG_RAM_BASE + CONFIG_RAM_SIZE)
-#define CONFIG_RAM_END_BL301   (0x10000000 + 64 * 1024) /*16K BL301 + 48K BL30*/
 
 #define CONFIG_TASK_STACK_SIZE (1024 + 512)
 #define TASK_SHARE_MEM_SIZE    1024

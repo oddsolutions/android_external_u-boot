@@ -1,36 +1,16 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
-
-/* platform dirver header */
-/*
- * (C) Copyright 2010 Amlogic, Inc
+ * drivers/usb/gadget/v2_burning/v2_usb_tool/platform.c
  *
- * Victor Wan, victor.wan@amlogic.com,
- * 2010-03-24 @ Shanghai
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
  */
+
+/* platform dirver header */
  #include "platform.h"
 //#include "power_gate.h"
 #include <asm/arch/secure_apb.h>
 #include <asm/cpu_id.h>
-#include <amlogic/power_domain.h>
 
 /*CONFIG_AML_MESON_8 include m8, m8baby, m8m2, etc... defined in cpu.h*/
 #if !(defined(CONFIG_USB_XHCI) || defined(CONFIG_USB_DWC_OTG_294))
@@ -279,11 +259,27 @@ void set_usb_phy_config(int cfg)
 	usb_aml_regs_t *usb_aml_regs = (usb_aml_regs_t * )PREI_USB_PHY_3_REG_BASE;
 	int cnt;
 
+	u32 val;
 #ifndef CONFIG_USB_POWER
-	if (b_platform_usb_check_sm1() == 1)
-		power_domain_switch(PM_USB, PWR_ON);
+	if (b_platform_usb_check_sm1() == 1) {
+		val = *(volatile uint32_t *)P_AO_RTI_GEN_PWR_SLEEP0;
+		*P_AO_RTI_GEN_PWR_SLEEP0 = val & (~(0x1<<17));
+		mdelay(20);
+		val = *(volatile uint32_t *)HHI_MEM_PD_REG0;
+		*P_HHI_MEM_PD_REG0 = val & (~(0x3<<30));
+		udelay(100);
+		val = *(volatile uint32_t *)P_AO_RTI_GEN_PWR_ISO0;
+		*P_AO_RTI_GEN_PWR_ISO0 = val & (~(0x1<<17));
+	}
 #else
-	power_domain_switch(PM_USB, PWR_ON);
+	val = *(volatile uint32_t *)P_AO_RTI_GEN_PWR_SLEEP0;
+	*P_AO_RTI_GEN_PWR_SLEEP0 = val & (~(0x1<<17));
+	mdelay(20);
+	val = *(volatile uint32_t *)HHI_MEM_PD_REG0;
+	*P_HHI_MEM_PD_REG0 = val & (~(0x3<<30));
+	udelay(100);
+	val = *(volatile uint32_t *)P_AO_RTI_GEN_PWR_ISO0;
+	*P_AO_RTI_GEN_PWR_ISO0 = val & (~(0x1<<17));
 #endif
 
 	mdelay(50);

@@ -1,23 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
  * board/amlogic/configs/txlx_t962x_r311_v1.h
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #ifndef __TXLX_T962X_R311_V1_H__
 #define __TXLX_T962X_R311_V1_H__
@@ -112,7 +99,7 @@
         "cvbs_drv=0\0"\
         "page_trace=on\0"\
         "osd_reverse=0\0"\
-        "lock=10101000\0"\
+        "lock=10001000\0"\
         "video_reverse=0\0"\
         "active_slot=normal\0"\
         "boot_part=boot\0"\
@@ -310,11 +297,6 @@
                     "setenv bootargs ${bootargs} androidboot.wificountrycode=${region_code};"\
                 "else "\
                     "setenv bootargs ${bootargs} androidboot.wificountrycode=US;"\
-                "fi;"\
-                "if keyman read oemkey ${loadaddr} str; then "\
-                    "setenv bootargs ${bootargs} androidboot.oem.key1=${oemkey};"\
-                "else "\
-                    "setenv bootargs ${bootargs} androidboot.oem.key1=ATV00104319;"\
                 "fi;"\
             "fi;"\
             "\0"\

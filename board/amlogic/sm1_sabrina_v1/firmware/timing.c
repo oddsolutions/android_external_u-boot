@@ -1,23 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * board/amlogic/txl_skt_v1/firmware/timing.c
+ * board/amlogic/g12a_u215_v1/firmware/timing.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #include <asm/arch/secure_apb.h>
 #include <asm/arch/timing.h>
@@ -63,10 +50,10 @@ ddr_set_t __ddr_setting[] = {
 	/* g12a (Google) lpddr4 */
 	.board_id				= CONFIG_BOARD_ID_MASK,
 	.version				= 1,
-	//.fast_boot[0]=6,
+	.fast_boot[0]=1,
 	//.dram_rank_config		= CONFIG_DDR0_32BIT_RANK01_CH0,
 	.dram_rank_config		= CONFIG_DDR0_32BIT_RANK0_CH01,
-	.ddr_rfc_type			= DDR_RFC_TYPE_LPDDR4_4Gbx1,
+	.ddr_rfc_type			= DDR_RFC_TYPE_DDR4_2Gbx8,//DDR_RFC_TYPE_LPDDR4_4Gbx1,
 	.DramType				= CONFIG_DDR_TYPE_LPDDR4,
 	.DRAMFreq				= {1584, 0, 0, 0},
 	.ddr_base_addr			= CFG_DDR_BASE_ADDR,
@@ -532,51 +519,54 @@ ddr_reg_t __ddr_reg[] = {
 
 #define VCCK_VAL				CONFIG_VCCK_INIT_VOLTAGE
 #define VDDEE_VAL				CONFIG_VDDEE_INIT_VOLTAGE
+#define SYS_LED_VAL				CONFIG_SYS_LED_INIT_VOLTAGE
+#define YELLOW_LED_VAL			CONFIG_YELLOW_LED_VOLTAGE
+
 /* VCCK PWM table */
 #if   (VCCK_VAL == 800)
-	#define VCCK_VAL_REG	0x00150007
+	#define VCCK_VAL_REG	0x0019000a
 #elif (VCCK_VAL == 810)
-	#define VCCK_VAL_REG	0x00140008
+	#define VCCK_VAL_REG	0x0018000b
 #elif (VCCK_VAL == 820)
-	#define VCCK_VAL_REG	0x00130009
+	#define VCCK_VAL_REG	0x0017000c
 #elif (VCCK_VAL == 830)
-	#define VCCK_VAL_REG	0x0012000a
+	#define VCCK_VAL_REG	0x0016000d
 #elif (VCCK_VAL == 840)
-	#define VCCK_VAL_REG	0x0011000b
+	#define VCCK_VAL_REG	0x0015000e
 #elif (VCCK_VAL == 850)
-	#define VCCK_VAL_REG	0x0010000c
+	#define VCCK_VAL_REG	0x0014000f
 #elif (VCCK_VAL == 860)
-	#define VCCK_VAL_REG	0x000f000d
+	#define VCCK_VAL_REG	0x00130010
 #elif (VCCK_VAL == 870)
-	#define VCCK_VAL_REG	0x000e000e
+	#define VCCK_VAL_REG	0x00120011
 #elif (VCCK_VAL == 880)
-	#define VCCK_VAL_REG	0x000d000f
+	#define VCCK_VAL_REG	0x00110012
 #elif (VCCK_VAL == 890)
-	#define VCCK_VAL_REG	0x000c0010
+	#define VCCK_VAL_REG	0x00100013
 #elif (VCCK_VAL == 900)
-	#define VCCK_VAL_REG	0x000b0011
+	#define VCCK_VAL_REG	0x000f0014
 #elif (VCCK_VAL == 910)
-	#define VCCK_VAL_REG	0x000a0012
+	#define VCCK_VAL_REG	0x000e0015
 #elif (VCCK_VAL == 920)
-	#define VCCK_VAL_REG	0x00090013
+	#define VCCK_VAL_REG	0x000d0016
 #elif (VCCK_VAL == 930)
-	#define VCCK_VAL_REG	0x00080014
+	#define VCCK_VAL_REG	0x000c0017
 #elif (VCCK_VAL == 940)
-	#define VCCK_VAL_REG	0x00070015
+	#define VCCK_VAL_REG	0x000b0018
 #elif (VCCK_VAL == 950)
-	#define VCCK_VAL_REG	0x00060016
+	#define VCCK_VAL_REG	0x000a0019
 #elif (VCCK_VAL == 960)
-	#define VCCK_VAL_REG	0x00050017
+	#define VCCK_VAL_REG	0x0009001a
 #elif (VCCK_VAL == 970)
-	#define VCCK_VAL_REG	0x00040018
+	#define VCCK_VAL_REG	0x0008001b
 #elif (VCCK_VAL == 980)
-	#define VCCK_VAL_REG	0x00030019
+	#define VCCK_VAL_REG	0x0007001c
 #elif (VCCK_VAL == 990)
-	#define VCCK_VAL_REG	0x0002001a
+	#define VCCK_VAL_REG	0x0006001d
 #elif (VCCK_VAL == 1000)
-	#define VCCK_VAL_REG	0x0001001b
+	#define VCCK_VAL_REG	0x0005001e
 #elif (VCCK_VAL == 1010)
-	#define VCCK_VAL_REG	0x0000001c
+	#define VCCK_VAL_REG	0x0004001f
 #else
 	#error "VCCK val out of range\n"
 #endif
@@ -661,10 +651,21 @@ bl2_reg_t __bl2_reg[] = {
 	/* Enable VCCK */
 	{AO_SEC_REG0,         (1 << 0),                0xffffffff,   0, BL2_INIT_STAGE_1, 0},
 	{AO_GPIO_O,           (1 << 31),               0xffffffff,   0, BL2_INIT_STAGE_1, 0},
+#if 0
 	/* Init sys led*/
 	{AO_GPIO_O_EN_N,      (0 << 11),               (1 << 11),    0, BL2_INIT_STAGE_1, 0},
 	{AO_GPIO_O,           (1 << 11),               (1 << 11),    0, BL2_INIT_STAGE_1, 0},
+#else
+	/* Init sys led, mux GPIOAO_11 to PWMAO_A */
+	{AO_PWM_PWM_A,		  SYS_LED_VAL,			0xffffffff,   0, BL2_INIT_STAGE_1,	0},
+	{AO_PWM_MISC_REG_AB,  ((0 << 15) | (0 << 0)),  (0x7f << 8), 0, BL2_INIT_STAGE_1,  0},
+	{AO_PIN_MUX_REG1,	  (3 << 12),			   (0xF << 12),  0, BL2_INIT_STAGE_1, 0},
 
+	/* Init yellow led, mux GPIOAO_4 to PWMAO_C */
+	{AO_PWM_PWM_C,		  YELLOW_LED_VAL,		   0xffffffff,	 0, BL2_INIT_STAGE_1,  0},
+	{AO_PWM_MISC_REG_CD,  ((1 << 15) | (1 << 0)),  (0x7f << 8), 0, BL2_INIT_STAGE_1,  0},
+	{AO_PIN_MUX_REG0,	  (3 << 16),			   (0xF << 16),  0, BL2_INIT_STAGE_1, 0},
+#endif
 	/* GPIO inputs */
 	/* Disable Pull_UP_EN */
 	{PAD_PULL_UP_EN_REG3,      0,                 ((1 << 7)| (1 << 6)),   0, BL2_INIT_STAGE_1, 0},    /* [6] GPIOH_6; [7] GPIOH_7 */

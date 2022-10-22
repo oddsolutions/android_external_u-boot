@@ -1,22 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
+ * drivers/usb/gadget/v2_burning/v2_common/optimus_buffer_manager.c
+ *
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
+ *
+ */
 
 #include "../v2_burning_i.h"
 
@@ -83,10 +71,6 @@ int optimus_buf_manager_init(const unsigned mediaAlignSz)
         return OPT_DOWN_FAIL;
     }
     _bufManager.mediaAlignSz = mediaAlignSz;
-    *(u32*)(&_bufManager.transferUnitSz) = (OPTIMUS_WORK_MODE_USB_PRODUCE >= optimus_work_mode_get())
-                                                ? OPTIMUS_DOWNLOAD_SLOT_SZ : OPTIMUS_LOCAL_UPGRADE_SLOT_SZ;
-    _bufManager.writeBackUnitSz = _bufManager.transferUnitSz;
-
 
     DWN_DBG("transfer=0x%p, transferBufSz=0x%x, transferUnitSz=0x%x, writeBackUnitSz=0x%x, totalSlotNum=%d\n", _bufManager.transferBuf,
             _bufManager.transferBufSz,  _bufManager.transferUnitSz,     _bufManager.writeBackUnitSz,        _bufManager.totalSlotNum);
@@ -135,7 +119,6 @@ int optimus_buf_manager_tplcmd_init(const char* mediaType,  const char* partName
 
     _bufManager.destMediaType   = !strcmp("mem", mediaType) ? OPTIMUS_MEDIA_TYPE_MEM : OPTIMUS_MEDIA_TYPE_STORE ;
     if ( !cacheAll2Mem ) cacheAll2Mem = !strcmp("mem", mediaType) ;
-    if ( !cacheAll2Mem ) cacheAll2Mem = (pktSz4BufManager <= _bufManager.transferUnitSz);
     if (cacheAll2Mem)
     {
             writeBackUnitSz             = pktSz4BufManager + _bufManager.transferUnitSz - 1;
@@ -154,7 +137,7 @@ int optimus_buf_manager_tplcmd_init(const char* mediaType,  const char* partName
         return OPT_DOWN_FAIL;
     }
     if (_bufManager.transferUnitSz > writeBackUnitSz) {
-        DWN_ERR("write back size %d < align size %d\n", writeBackUnitSz, _bufManager.transferUnitSz);
+        DWN_ERR("write back size %d < align size %d\n", writeBackUnitSz, _bufManager.mediaAlignSz);
         return OPT_DOWN_FAIL;
     }
     DWN_DBG("writeBackUnitSz = 0x%x, pktSz4BufManager = %lld\n", writeBackUnitSz, pktSz4BufManager);
@@ -202,7 +185,7 @@ int optimus_buf_manager_get_buf_for_bulk_transfer(char** pBuf, const unsigned wa
                         (u8*)(u64)_bufManager.partBaseOffset ;
 
     if (wantSz < _bufManager.transferUnitSz && !isLastTransfer) {
-        DWN_ERR("only last transfer can less 64K, this index %d at size 0x%x illegle\n", totalSlotNum + 1, wantSz);
+        DWN_ERR("only last transfer can less 64K, this index %d at size 0x%u illegle\n", totalSlotNum + 1, wantSz);
         return OPT_DOWN_FAIL;
     }
 
@@ -220,12 +203,12 @@ int optimus_buf_manager_get_buf_for_bulk_transfer(char** pBuf, const unsigned wa
     //prepare data for upload
     if (!bufSzNotDisposed && _bufManager.isUpload)
     {
-        u32 wantSz = (leftPktSz > _bufManager.writeBackUnitSz) ? _bufManager.writeBackUnitSz : ((u32)leftPktSz);
-        DWN_DBG("want size 0x%x\n", wantSz);
+        u32 dataSz4Up = (leftPktSz > _bufManager.writeBackUnitSz) ? _bufManager.writeBackUnitSz : ((u32)leftPktSz);
+        DWN_DBG("want size 0x%x\n", dataSz4Up);
 
-        u32 readSz = optimus_dump_storage_data((u8*)BufBase, wantSz, errInfo);
-        if (readSz != wantSz) {
-            DWN_ERR("Want read %u, but %u\n", wantSz, readSz);
+        u32 readSz = optimus_dump_storage_data((u8*)BufBase, dataSz4Up, errInfo);
+        if (readSz != dataSz4Up) {
+            DWN_ERR("Want read %u, but %u\n", dataSz4Up, readSz);
             return OPT_DOWN_FAIL;
         }
     }

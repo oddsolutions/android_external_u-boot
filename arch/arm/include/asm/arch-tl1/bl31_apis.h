@@ -1,32 +1,11 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * arch/arm/include/asm/arch-txl/bl31_apis.h
+ * arch/arm/include/asm/arch-tl1/bl31_apis.h
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
-
-/*
- * Trustzone API
- *
- * Copyright (C) 2012 Amlogic, Inc.
- *
- * Author: Platform-SH@amlogic.com
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
  */
+
 
 #ifndef __GXBB_BL31_APIS_H
 #define __GXBB_BL31_APIS_H
@@ -94,17 +73,6 @@
 
 /*viu probe en*/
 #define VIU_PREOBE_EN		0x82000080
-
-/* KEYMASTER */
-#define SET_BOOT_PARAMS		0x82000072
-#define SHA256_DIGEST_SIZE  32
-typedef struct {
-	uint32_t device_locked;
-	uint32_t verified_boot_state;
-	uint8_t verified_boot_key[SHA256_DIGEST_SIZE];
-	uint8_t verified_boot_hash[SHA256_DIGEST_SIZE];
-} keymaster_boot_params;
-
 /* Secure HAL APIs */
 #define TRUSTZONE_HAL_API_SRAM                  0x400
 
@@ -160,5 +128,4 @@ void aml_system_off(void);
 void bl31_get_chipid(unsigned int *, unsigned int *,
 	unsigned int *, unsigned int *);
 void set_viu_probe_enable(void);
-int32_t set_boot_params(const keymaster_boot_params*);
 #endif

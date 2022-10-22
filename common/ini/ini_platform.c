@@ -1,23 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
-
+ * common/ini/ini_platform.c
+ *
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
+ *
+ */
 
 #include "ini_config.h"
 
@@ -28,7 +15,6 @@ Description:
 
 #include "ini_handler.h"
 #include "ini_platform.h"
-#include <partition_table.h>
 
 //c basic lib
 char* plat_strtok_r(char *str, const char *delim, char **saveptr) {
@@ -45,7 +31,6 @@ static int splitFilePath(const char *file_path, char part_name[], char file_name
     int i = 0;
     char *tmp_start_ptr = NULL;
     char *tmp_end_ptr = NULL;
-    char *slot_name;
 
     if (file_path == NULL) {
         ALOGE("%s, file_path is NULL!!!\n", __FUNCTION__);
@@ -67,18 +52,6 @@ static int splitFilePath(const char *file_path, char part_name[], char file_name
     strncpy(part_name, tmp_start_ptr + 1, tmp_end_ptr - tmp_start_ptr - 1);
     part_name[tmp_end_ptr - tmp_start_ptr - 1] = '\0';
     //ALOGD("%s, partition name is %s\n", __FUNCTION__, part_name);
-
-    if (has_boot_slot == 1) {
-        run_command("get_valid_slot", 0);
-        slot_name = getenv("slot-suffixes");
-        printf("slot-suffixes: %s\n", slot_name);
-        if (strcmp(slot_name, "0") == 0) {
-            strcat(part_name, "_a");
-        } else if (strcmp(slot_name, "1") == 0) {
-            strcat(part_name, "_b");
-        }
-        ALOGD("%s, partition name is %s\n", __FUNCTION__, part_name);
-    }
 
     tmp_start_ptr = tmp_end_ptr;
 

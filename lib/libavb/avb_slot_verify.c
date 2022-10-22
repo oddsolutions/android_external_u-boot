@@ -1279,10 +1279,6 @@ fail:
 }
 
 void avb_slot_verify_data_free(AvbSlotVerifyData* data) {
-  if (data == NULL) {
-    return;
-  }
-
   if (data->ab_suffix != NULL) {
     avb_free(data->ab_suffix);
   }

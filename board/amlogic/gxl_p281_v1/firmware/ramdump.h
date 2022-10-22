@@ -1,17 +1,8 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
  * board/amlogic/gxl_p281_v1/firmware/ramdump.h
  *
- * Copyright (C) 2017 Amlogic, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
  */
 
@@ -61,7 +52,7 @@
  *                            |        |
  *     COMPRESS_START_ADDR -> +--------+
  */
-#define CONFIG_DDR_TOTAL_SIZE		(((unsigned int)CONFIG_DDR_SIZE) << 20)
+#define CONFIG_DDR_TOTAL_SIZE		(CONFIG_DDR_SIZE << 20)
 #define CONFIG_COMPRESSED_DATA_ADDR	(0x08000000)
 #define CONFIG_COMPRESSED_DATA_ADDR1	(0x08000000)
 

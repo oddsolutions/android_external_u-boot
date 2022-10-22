@@ -1,19 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
  * drivers/display/lcd/lcd_tv/lcd_drv.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
-*/
+ */
 
 #include <common.h>
 #include <malloc.h>
@@ -122,7 +113,6 @@ static void lcd_venc_set(struct lcd_config_s *pconf)
 	lcd_vcbus_write(ENCL_VIDEO_VAVON_ELINE, v_active - 1  + video_on_line);
 	switch (pconf->lcd_basic.lcd_type) {
 	case LCD_P2P:
-	case LCD_MLVDS:
 		lcd_vcbus_write(ENCL_VIDEO_V_PRE_DE_BLINE, video_on_line - 1 - 4);
 		lcd_vcbus_write(ENCL_VIDEO_V_PRE_DE_ELINE, video_on_line - 1);
 		lcd_vcbus_write(ENCL_VIDEO_H_PRE_DE_BEGIN, video_on_pixel + PRE_DE_DELAY);
@@ -298,36 +288,8 @@ static void lcd_lvds_control_set(struct lcd_config_s *pconf)
 		break;
 	case LCD_CHIP_TL1:
 	case LCD_CHIP_TM2:
-		/* lvds channel:    //tx 12 channels
-		 *    0: d0_a
-		 *    1: d1_a
-		 *    2: d2_a
-		 *    3: clk_a
-		 *    4: d3_a
-		 *    5: d4_a
-		 *    6: d0_b
-		 *    7: d1_b
-		 *    8: d2_b
-		 *    9: clk_b
-		 *    a: d3_b
-		 *    b: d4_b */
-		if (port_swap) {
-			if (lane_reverse) {
-				lcd_vcbus_write(P2P_CH_SWAP0, 0x456789ab);
-				lcd_vcbus_write(P2P_CH_SWAP1, 0x0123);
-			} else {
-				lcd_vcbus_write(P2P_CH_SWAP0, 0x10ba9876);
-				lcd_vcbus_write(P2P_CH_SWAP1, 0x5432);
-			}
-		} else {
-			if (lane_reverse) {
-				lcd_vcbus_write(P2P_CH_SWAP0, 0xab012345);
-				lcd_vcbus_write(P2P_CH_SWAP1, 0x6789);
-			} else {
-				lcd_vcbus_write(P2P_CH_SWAP0, 0x76543210);
-				lcd_vcbus_write(P2P_CH_SWAP1, 0xba98);
-			}
-		}
+		lcd_vcbus_write(P2P_CH_SWAP0, 0x76543210);
+		lcd_vcbus_write(P2P_CH_SWAP1, 0xba98);
 		break;
 	default:
 		lcd_vcbus_setb(LCD_PORT_SWAP, port_swap, 12, 1);
@@ -672,8 +634,6 @@ static void lcd_vbyone_control_set(struct lcd_config_s *pconf)
 	//lcd_vcbus_setb(VBO_PXL_CTRL,0x2,0,4);
 	//lcd_vcbus_setb(VBO_PXL_CTRL,0x3,VBO_PXL_CTR1_BIT,VBO_PXL_CTR1_WID);
 	//set_vbyone_ctlbits(1,0,0); */
-	/* VBO_RGN_GEN clk always on */
-	lcd_vcbus_setb(VBO_GCLK_MAIN, 2, 2, 2);
 
 	/* PAD select: */
 	if ((lane_count == 1) || (lane_count == 2))
@@ -930,7 +890,6 @@ static void lcd_p2p_control_set(struct lcd_config_s *pconf)
 	/* phy_div: 0=div6, 1=div 7, 2=div8, 3=div10 */
 	switch (pconf->lcd_control.p2p_config->p2p_type) {
 	case P2P_CHPI: /* 8/10 coding */
-	case P2P_USIT:
 		phy_div = 3;
 		break;
 	default:

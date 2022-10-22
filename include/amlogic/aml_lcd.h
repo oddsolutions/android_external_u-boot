@@ -1,15 +1,8 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
  * include/amlogic/aml_lcd.h
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the named License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
  */
 
@@ -54,8 +47,6 @@
 #define LCD_EXT_CMD_TYPE_CMD_DELAY    0x00
 #define LCD_EXT_CMD_TYPE_CMD2_DELAY   0x01  /* for i2c device 2nd addr */
 #define LCD_EXT_CMD_TYPE_NONE         0x10
-#define LCD_EXT_CMD_TYPE_CMD_BIN      0xb0
-#define LCD_EXT_CMD_TYPE_CMD2_BIN     0xb1  /* for i2c device 2nd addr */
 #define LCD_EXT_CMD_TYPE_CMD          0xc0
 #define LCD_EXT_CMD_TYPE_CMD2         0xc1  /* for i2c device 2nd addr */
 #define LCD_EXT_CMD_TYPE_GPIO         0xf0

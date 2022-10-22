@@ -1,23 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
  * drivers/vpu/aml_vpu_power_init.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #include <config.h>
 #include <linux/kernel.h>
@@ -60,24 +47,7 @@ void vpu_module_init_config(void)
 	/* dmc_arb_config */
 	vpu_vcbus_write(VPU_RDARB_MODE_L1C1, 0x0); //0x210000
 	vpu_vcbus_write(VPU_RDARB_MODE_L1C2, 0x10000);
-	switch (vpu_conf.data->chip_type) {
-	case VPU_CHIP_GXBB:
-	case VPU_CHIP_GXTVBB:
-	case VPU_CHIP_GXL:
-	case VPU_CHIP_GXM:
-	case VPU_CHIP_TXL:
-	case VPU_CHIP_TXLX:
-	case VPU_CHIP_AXG:
-	case VPU_CHIP_TXHD:
-	case VPU_CHIP_G12A:
-	case VPU_CHIP_G12B:
-	case VPU_CHIP_SM1:
-		vpu_vcbus_write(VPU_RDARB_MODE_L2C1, 0x900000);
-		break;
-	default:
-		vpu_vcbus_write(VPU_RDARB_MODE_L2C1, 0x20000);
-		break;
-	}
+	vpu_vcbus_write(VPU_RDARB_MODE_L2C1, 0x900000);
 	vpu_vcbus_write(VPU_WRARB_MODE_L2C1, 0x20000);
 
 	VPUPR("%s\n", __func__);

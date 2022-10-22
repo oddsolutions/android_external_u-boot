@@ -1,19 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * drivers/osd/osd_fb.c
+ * drivers/display/osd/osd_fb.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
-*/
+ */
 
 /* System Headers */
 #include <common.h>
@@ -1189,7 +1180,9 @@ static int _osd_hw_init(void)
 	u32 fg = 0;
 	u32 bg = 0;
 	u32 fb_width = 0;
-	u32 fb_height = 0;
+	u32 fb_height = 0;;
+
+	get_osd_version();
 
 	vout_init();
 	fb_addr = get_fb_addr();
@@ -1244,6 +1237,10 @@ static int osd_hw_init_by_index(u32 osd_index)
 
 	return 0;
 }
+
+
+
+
 
 static int video_display_osd(u32 osd_index)
 {
@@ -1343,16 +1340,16 @@ void hist_set_golden_data(void)
 		if (str) {
 			switch (i%4) {
 				case 0:
-					hist_max_min[i/4][family_id] = env_strtoul(hist_env_key[i], 16);
+					hist_max_min[i/4][family_id] = env_strtoul(str, 16);
 					break;
 				case 1:
-					hist_spl_val[i/4][family_id] = env_strtoul(hist_env_key[i], 16);
+					hist_spl_val[i/4][family_id] = env_strtoul(str, 16);
 					break;
 				case 2:
-					hist_spl_pix_cnt[i/4][family_id] = env_strtoul(hist_env_key[i], 16);
+					hist_spl_pix_cnt[i/4][family_id] = env_strtoul(str, 16);
 					break;
 				case 3:
-					hist_cheoma_sum[i/4][family_id] = env_strtoul(hist_env_key[i], 16);
+					hist_cheoma_sum[i/4][family_id] = env_strtoul(str, 16);
 					break;
 			}
 		}
@@ -1365,7 +1362,6 @@ int osd_rma_test(u32 osd_index)
 	u32 hist_result[4];
 	u32 family_id = get_cpu_id().family_id;
 
-	get_osd_version();
 	if (osd_hw.osd_ver == OSD_SIMPLE) {
 		osd_max = 0;
 	} else if (osd_hw.osd_ver == OSD_HIGH_ONE) {

@@ -194,7 +194,12 @@ CC			:=	${CROSS_COMPILE}gcc
 CPP			:=	${CROSS_COMPILE}cpp
 AS			:=	${CROSS_COMPILE}gcc
 AR			:=	${CROSS_COMPILE}ar
-LD			:=	${CROSS_COMPILE}ld
+# Always use GNU ld
+ifneq ($(shell $(CROSS_COMPILE)ld.bfd -v 2> /dev/null),)
+LD			:= $(CROSS_COMPILE)ld.bfd
+else
+LD			:= $(CROSS_COMPILE)ld
+endif
 OC			:=	${CROSS_COMPILE}objcopy
 OD			:=	${CROSS_COMPILE}objdump
 NM			:=	${CROSS_COMPILE}nm

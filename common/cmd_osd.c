@@ -1,22 +1,10 @@
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
-* Copyright (C) 2017 Amlogic, Inc. All rights reserved.
-* *
-This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-* *
-This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-* *
-You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-* *
-Description:
-*/
+ * common/cmd_osd.c
+ *
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
+ *
+ */
 
 #include <common.h>
 #include <lcd.h>
@@ -261,27 +249,12 @@ static int do_osd_dual_logo(cmd_tbl_t *cmdtp, int flag, int argc,
 	printf("osd: hpd_state=%c\n", st ? '1' : '0');
 
 	if (st) {
-		/* hdmi plugin, dual logo display
-		 * CONFIG_RECOVERY_DUAL_LOGO is given priority in recovery
-		 */
-		if (!strncmp(getenv("reboot_mode"), "factory_reset", 13)) {
-		#if defined(CONFIG_RECOVERY_DUAL_LOGO)
-			run_command(CONFIG_RECOVERY_DUAL_LOGO, 0);
-		#else
-		#if defined(CONFIG_DUAL_LOGO)
-			printf("osd: use dual logo cmd macro in recovery mode\n");
-			run_command(CONFIG_DUAL_LOGO, 0);
-		#else
-			printf("osd: dual logo cmd macro is not defined in recovery mode\n");
-		#endif
-		#endif
-		} else {
-		#if defined(CONFIG_DUAL_LOGO)
-			run_command(CONFIG_DUAL_LOGO, 0);
-		#else
-			printf("osd: dual logo cmd macro is not defined\n");
-		#endif
-		}
+		/* hdmi plugin, dual logo display */
+	#if defined(CONFIG_DUAL_LOGO)
+		run_command(CONFIG_DUAL_LOGO, 0);
+	#else
+		printf("osd: dual logo cmd macro is not defined\n");
+	#endif
 	} else {
 		/* hdmi plugout, single logo display */
 	#if defined(CONFIG_SINGLE_LOGO)

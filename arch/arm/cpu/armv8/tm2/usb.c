@@ -1,27 +1,14 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * arch/arm/cpu/armv8/txl/usb.c
+ * arch/arm/cpu/armv8/tm2/usb.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #include <asm/arch/usb-v2.h>
 #include <asm/arch/romboot.h>
-#include <amlogic/power_domain.h>
+
 
 static struct amlogic_usb_config * g_usb_cfg[BOARD_USB_MODE_MAX][USB_PHY_PORT_MAX];
 
@@ -52,7 +39,14 @@ int usb_index = 0;
 void board_usb_init(struct amlogic_usb_config * usb_cfg,int mode)
 {
 #ifdef CONFIG_USB_POWER
-	power_domain_switch(PM_USB, PWR_ON);
+	writel((readl(P_AO_RTI_GEN_PWR_SLEEP0) & (~(0x1<<17))),
+			P_AO_RTI_GEN_PWR_SLEEP0);
+	writel((readl(HHI_MEM_PD_REG0) & (~(0x3<<30))), HHI_MEM_PD_REG0);
+
+	udelay(100);
+
+	writel((readl(P_AO_RTI_GEN_PWR_ISO0) & (~(0x1<<17))),
+			P_AO_RTI_GEN_PWR_ISO0);
 #endif
 
 	if (mode < 0 || mode >= BOARD_USB_MODE_MAX || !usb_cfg)
@@ -68,6 +62,17 @@ void board_usb_init(struct amlogic_usb_config * usb_cfg,int mode)
 	printf("register usb cfg[%d][%d] = %p\n",mode,(mode==BOARD_USB_MODE_HOST)?usb_index:0,usb_cfg);
 }
 
+static void set_pll_Calibration_default(uint32_t volatile *phy2_pll_base)
+{
+	u32 tmp;
+
+	tmp = (*(volatile uint32_t *)(unsigned long)((unsigned long)phy2_pll_base + 0x8));
+	tmp &= 0xfff;
+	tmp |= (*(volatile uint32_t *)(unsigned long)((unsigned long)phy2_pll_base + 0x10));
+	(*(volatile uint32_t *)(unsigned long)((unsigned long)phy2_pll_base + 0x10))
+	 = tmp;
+}
+
 int get_usb_count(void)
 {
     return  usb_index;
@@ -76,15 +81,27 @@ int get_usb_count(void)
 void set_usb_pll(uint32_t volatile *phy2_pll_base)
 {
     (*(volatile uint32_t *)((unsigned long)phy2_pll_base + 0x40))
-        = (USB_PHY2_PLL_PARAMETER_1 | USB_PHY2_RESET | USB_PHY2_ENABLE);
-    (*(volatile uint32_t *)((unsigned long)phy2_pll_base + 0x44)) =
-        USB_PHY2_PLL_PARAMETER_2;
-    (*(volatile uint32_t *)((unsigned long)phy2_pll_base + 0x48)) =
-        USB_PHY2_PLL_PARAMETER_3;
+     = (USB_PHY2_PLL_PARAMETER_1 | USB_PHY2_RESET | USB_PHY2_ENABLE);
+    (*(volatile uint32_t *)((unsigned long)phy2_pll_base + 0x44))
+     =USB_PHY2_PLL_PARAMETER_2;
+    (*(volatile uint32_t *)((unsigned long)phy2_pll_base + 0x48))
+     =USB_PHY2_PLL_PARAMETER_3;
     udelay(100);
     (*(volatile uint32_t *)(unsigned long)((unsigned long)phy2_pll_base + 0x40))
-        = (((USB_PHY2_PLL_PARAMETER_1) | (USB_PHY2_ENABLE))
-        & (~(USB_PHY2_RESET)));
+     = (((USB_PHY2_PLL_PARAMETER_1) | (USB_PHY2_ENABLE))
+     & (~(USB_PHY2_RESET)));
+
+    (*(volatile uint32_t *)(unsigned long)((unsigned long)phy2_pll_base + 0x50))
+     = 0xfe18;
+    (*(volatile uint32_t *)(unsigned long)((unsigned long)phy2_pll_base + 0x54))
+     = 0x2a;
+
+    set_pll_Calibration_default(phy2_pll_base);
+
+    (*(volatile uint32_t *)(unsigned long)((unsigned long)phy2_pll_base + 0xc))
+     = 0x34;
+    (*(volatile uint32_t *)(unsigned long)((unsigned long)phy2_pll_base + 0x34))
+     = 0x78000;
 }
 
 void board_usb_pll_disable(struct amlogic_usb_config *cfg)
@@ -117,10 +134,14 @@ void set_usb_phy_tuning_1(int port)
 	else
 		phy_reg_base = USB_REG_B;
 
-	(*(volatile uint32_t *)(phy_reg_base + 0x10)) = 0xfff;
-	(*(volatile uint32_t *)(phy_reg_base + 0x50)) = 0xfe18;
-	(*(volatile uint32_t *)(phy_reg_base + 0x38)) = 0xe0004;
-	(*(volatile uint32_t *)(phy_reg_base + 0x34)) = 0xc8000;
+	(*(volatile uint32_t *)(unsigned long)((unsigned long)phy_reg_base + 0x10))
+		= 0xfff;
+	(*(volatile uint32_t *)(unsigned long)((unsigned long)phy_reg_base + 0x50))
+		= 0xfe18;
+	(*(volatile uint32_t *)(unsigned long)((unsigned long)phy_reg_base + 0x38))
+		= 0xe0004;
+	(*(volatile uint32_t *)(unsigned long)((unsigned long)phy_reg_base + 0x34))
+		= 0xc8000;
 #endif
 }
 #endif

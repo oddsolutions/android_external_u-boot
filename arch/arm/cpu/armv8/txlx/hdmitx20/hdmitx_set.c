@@ -1,23 +1,10 @@
-
+/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
 /*
- * arch/arm/cpu/armv8/txl/hdmitx20/hdmitx_set.c
+ * arch/arm/cpu/armv8/txlx/hdmitx20/hdmitx_set.c
  *
- * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
+ * Copyright (C) 2020 Amlogic, Inc. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
+ */
 
 #include <common.h>
 #include <asm/io.h>
@@ -751,7 +738,7 @@ static void config_hdmi20_tx ( enum hdmi_vic vic, struct hdmi_format_para *para,
 	data32  = 0;
 	data32 |= (((output_color_format>>2)&0x1) << 7);
 	data32 |= (1 << 6);
-	data32 |= (0 << 4);
+	data32 |= (0x2 << 4);
 	data32 |= (0 << 2);
 	data32 |= (0x2 << 0);    /* FIXED YCBCR 444 */
 	hdmitx_wr_reg(HDMITX_DWC_FC_AVICONF0, data32);
